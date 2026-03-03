@@ -1,0 +1,315 @@
+---
+title: Running Tests
+description: Learn how to run unit tests and UI tests for Windows Calculator
+---
+
+Windows Calculator includes comprehensive test coverage with both unit tests and UI automation tests. This guide shows you how to run them.
+
+## Test Projects
+
+Calculator has two test projects:
+
+| Project | Type | Framework | Description |
+|---------|------|-----------|-------------|
+| **CalculatorUnitTests** | C++ | VSTest | Unit tests for CalcManager and CalcViewModel |
+| **CalculatorUITests** | C# | Appium/WinAppDriver | End-to-end UI automation tests |
+
+## Unit Tests
+
+Unit tests verify the core calculation logic and view models without requiring the full UI.
+
+### Running Unit Tests in Visual Studio
+
+<Steps>
+  <Step title="Open Test Explorer">
+    In Visual Studio, go to **Test > Test Explorer** or press **Ctrl+E, T**.
+  </Step>
+
+  <Step title="Build the Test Project">
+    Build the CalculatorUnitTests project:
+    - Right-click **CalculatorUnitTests** in Solution Explorer
+    - Select **Build**
+  </Step>
+
+  <Step title="Run Tests">
+    In Test Explorer:
+    - Click **Run All** to run all unit tests
+    - Or right-click specific tests to run individually
+    - View results in the Test Explorer window
+  </Step>
+</Steps>
+
+### Running Unit Tests from Command Line
+
+<Steps>
+  <Step title="Build the Test Package">
+    ```powershell
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Release `
+      -t:CalculatorUnitTests
+    ```
+  </Step>
+
+  <Step title="Install Test Certificate">
+    The test app requires a certificate to install:
+
+    ```powershell
+    # Sign the test package
+    ./build/scripts/SignTestApp.ps1 `
+      -AppToSign ./output/CalculatorUnitTests/AppPackages/CalculatorUnitTests_Test/CalculatorUnitTests.msix
+    ```
+  </Step>
+
+  <Step title="Run with VSTest Console">
+    ```powershell
+    vstest.console.exe `
+      ./output/CalculatorUnitTests/AppPackages/CalculatorUnitTests_Test/CalculatorUnitTests.msix `
+      /Platform:x64
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Unit tests are run automatically in the CI pipeline for both x64 and x86 platforms on non-PR builds.
+</Note>
+
+## UI Tests
+
+UI tests use Windows Application Driver (WinAppDriver) to automate the Calculator UI and verify end-to-end functionality.
+
+### Prerequisites for UI Tests
+
+<Steps>
+  <Step title="Install WinAppDriver">
+    Download and install [Windows Application Driver](https://github.com/microsoft/WinAppDriver/releases/latest).
+
+    <CodeGroup>
+    ```powershell Manual Installation
+    # Download the latest release
+    Invoke-WebRequest 'https://github.com/microsoft/WinAppDriver/releases/download/v1.2.1/WindowsApplicationDriver_1.2.1.msi' `
+      -OutFile 'WinAppDriver.msi'
+
+    # Install silently
+    msiexec.exe /i WinAppDriver.msi /quiet /passive
+    ```
+
+    ```bash Direct Download
+    # Or download from:
+    https://github.com/microsoft/WinAppDriver/releases/latest
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Set Display Resolution">
+    UI tests require a specific screen resolution to run reliably:
+
+    ```powershell
+    Set-DisplayResolution -Width 1920 -Height 1080 -Force
+    ```
+
+    <Note>
+      This is especially important for CI/CD environments where the display resolution may vary.
+    </Note>
+  </Step>
+</Steps>
+
+### Running UI Tests
+
+<Steps>
+  <Step title="Build and Install Calculator">
+    ```powershell
+    # Build the app package
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Release `
+      -t:Calculator
+
+    # Sign and install the app
+    ./build/scripts/SignTestApp.ps1 `
+      -AppToSign './output/Calculator/AppPackages/Calculator*_Test/Calculator_*.msixbundle'
+    
+    # Run the installation script
+    ./output/Calculator/AppPackages/Calculator*_Test/Add-AppDevPackage.ps1 -Force
+    ```
+  </Step>
+
+  <Step title="Build the UI Test Project">
+    ```powershell
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Release `
+      -p:GenerateProjectSpecificOutputFolder=true `
+      -t:Publish `
+      -p:PublishDir=./output/publish/
+    ```
+  </Step>
+
+  <Step title="Run the UI Tests">
+    ```powershell
+    vstest.console.exe ./output/publish/CalculatorUITests.dll `
+      /Platform:x64 `
+      /Settings:./output/publish/CalculatorUITests.ci.runsettings
+    ```
+  </Step>
+</Steps>
+
+### UI Test Framework
+
+The **CalculatorUITestFramework** project provides:
+
+- Page object models for Calculator screens
+- Reusable test utilities and helpers
+- WinAppDriver session management
+- Common assertions and validations
+
+## Manual Tests
+
+Before each release, the Calculator team runs extensive manual tests. These tests cover:
+
+### Smoke Tests
+- Math operations in Standard, Scientific, and Programmer calculators
+- Converter functionality
+- Always-on-Top mode behavior
+- Memory and history features
+
+### Verification Tests
+- Launch and basic app functionality
+- All number input methods (mouse, keyboard, number pad)
+- Arithmetic functions across all calculator modes
+- Memory functions (MS, M+, M-, MR, MC)
+- Trigonometric functions (Scientific mode)
+- Logical operations (Programmer mode)
+- Graphing mode features
+- Date calculation
+- Currency conversion
+
+### Accessibility Tests
+- Narrator compatibility
+- Keyboard navigation
+- High contrast themes
+- Screen reader support
+
+### Localization Tests
+- Right-to-left (RTL) language support
+- Localized strings and error messages
+- Number format preferences
+
+<Note>
+  The complete manual test suite is available in [ManualTests.md](https://github.com/Microsoft/calculator/blob/main/docs/ManualTests.md).
+</Note>
+
+## Test Coverage
+
+Calculator aims for high test coverage:
+
+- **Unit tests** cover core calculation logic, view models, and utilities
+- **UI tests** verify end-to-end user scenarios
+- **Manual tests** ensure quality for features that are difficult to automate
+
+<CodeGroup>
+```text Unit Test Coverage
+✓ CalcManager (calculation engine)
+✓ CalcViewModel (view models)
+✓ Converter logic
+✓ History management
+✓ Memory operations
+✓ Number formatting
+```
+
+```text UI Test Coverage
+✓ Standard calculator operations
+✓ Scientific calculator functions
+✓ Programmer calculator
+✓ Unit converters
+✓ Date calculation
+✓ History and memory UI
+✓ Always-on-Top mode
+```
+</CodeGroup>
+
+## Running Tests in CI
+
+The GitHub Actions workflow automatically runs tests:
+
+```yaml
+# Unit tests run on x64 and x86 (x64 only for PRs)
+vstest.console.exe CalculatorUnitTests.msix /Platform:x64
+
+# UI tests run on x64 only
+vstest.console.exe CalculatorUITests.dll /Platform:x64
+```
+
+CI tests run on every:
+- Push to `main`, `release/**`, or `feature/**` branches
+- Pull request to `main`, `release/**`, or `feature/**` branches
+- Manual workflow dispatch
+
+## Writing Tests
+
+When contributing to Calculator, follow these guidelines:
+
+<Steps>
+  <Step title="Include Tests with Changes">
+    Your pull request should include tests whenever possible. Code should be structured to be unit testable independently of the UI.
+  </Step>
+
+  <Step title="Use Manual Tests When Needed">
+    For features that cannot be easily automated, document test cases in [ManualTests.md](https://github.com/Microsoft/calculator/blob/main/docs/ManualTests.md).
+  </Step>
+
+  <Step title="Follow Existing Patterns">
+    Structure your tests similarly to existing tests in the codebase. Use the CalculatorUITestFramework for UI tests.
+  </Step>
+
+  <Step title="Verify on Multiple Platforms">
+    Ensure tests pass on both x64 and x86 platforms before submitting.
+  </Step>
+</Steps>
+
+## Troubleshooting Tests
+
+### UI Tests Fail to Start
+
+**WinAppDriver not running**
+```
+Error: Could not connect to WinAppDriver
+```
+Ensure WinAppDriver is installed and the service is running:
+```powershell
+Get-Service | Where-Object {$_.Name -like "*WinAppDriver*"}
+```
+
+**App not installed**
+```
+Error: Application not found
+```
+Make sure Calculator is installed before running UI tests:
+```powershell
+Get-AppxPackage | Where-Object {$_.Name -like "*Calculator*"}
+```
+
+### Unit Tests Fail to Run
+
+**Test certificate not trusted**
+```
+Error: Package signature validation failed
+```
+Run the SignTestApp.ps1 script to install the test certificate.
+
+**Wrong platform**
+```
+Error: Platform mismatch
+```
+Ensure the test platform matches the build platform (x64, x86, or ARM64).
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Debugging" icon="bug" href="/development/debugging">
+    Learn debugging techniques and tips
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/contributing/guidelines">
+    Start contributing to Calculator
+  </Card>
+</CardGroup>

@@ -1,122 +1,114 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Windows Calculator",
+  "theme": "aspen",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0078D4",
+    "light": "#50E6FF",
+    "dark": "#005A9E"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/microsoft/calculator"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/microsoft/calculator"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
+              "introduction",
               "quickstart",
-              "development"
+              "installation"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Features",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "features/standard-calculator",
+              "features/scientific-calculator",
+              "features/programmer-calculator",
+              "features/date-calculator",
+              "features/unit-converter",
+              "features/currency-converter",
+              "features/graphing-mode",
+              "features/history-memory"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Architecture",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "architecture/overview",
+              "architecture/mvvm-pattern",
+              "architecture/view-layer",
+              "architecture/viewmodel-layer",
+              "architecture/model-layer"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Development",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "development/building",
+              "development/testing",
+              "development/debugging"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing/guidelines",
+              "contributing/code-style",
+              "contributing/pull-requests",
+              "contributing/feature-process"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Core Components",
             "pages": [
-              "api-reference/introduction"
+              "api/calculator-manager",
+              "api/calc-engine",
+              "api/ratpack"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "ViewModels",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/application-viewmodel",
+              "api/standard-calculator-viewmodel",
+              "api/date-calculator-viewmodel",
+              "api/unit-converter-viewmodel"
+            ]
+          },
+          {
+            "group": "Unit Conversion",
+            "pages": [
+              "api/unit-converter",
+              "api/currency-converter"
+            ]
+          },
+          {
+            "group": "Graphing",
+            "pages": [
+              "api/graphing-interfaces",
+              "api/graph-analyzer"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

@@ -1,0 +1,173 @@
+---
+title: Date Calculator
+description: Calculate differences between dates and add/subtract time periods
+---
+
+The Date Calculator provides two powerful modes for working with dates: calculating the difference between two dates, and adding or subtracting time periods from a date.
+
+## Overview
+
+Date Calculator offers the difference between two dates, as well as the ability to add/subtract years, months, and/or days to/from a given input date.
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs`
+
+## Calculation Modes
+
+<CardGroup cols={2}>
+  <Card title="Date Difference" icon="calendar-days">
+    Calculate the time span between two dates in years, months, weeks, and days.
+  </Card>
+  <Card title="Add/Subtract Dates" icon="calendar-plus">
+    Add or subtract a specific time period from a given date.
+  </Card>
+</CardGroup>
+
+## Date Difference Mode
+
+Calculate the exact difference between two dates.
+
+### Features
+
+- **From Date** - Starting date
+- **To Date** - Ending date
+- **Automatic Calculation** - Results update as you change dates
+
+### Result Display
+
+The calculator shows the difference in multiple formats:
+
+- **Years, Months, Days** - e.g., "2 years, 3 months, 15 days"
+- **Total Days** - Total number of days between the dates
+- **Total Weeks** - Total number of weeks (with remaining days)
+
+This multi-format display helps you understand the time difference in the most relevant units for your needs.
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:107-133`
+
+## Add/Subtract Mode
+
+Add or subtract a time period from a specific date.
+
+### Input Fields
+
+- **Start Date** - The base date for calculation
+- **Years** - Number of years to add/subtract
+- **Months** - Number of months to add/subtract
+- **Days** - Number of days to add/subtract
+- **Add/Subtract Toggle** - Choose whether to add or subtract the period
+
+### Calculation
+
+The result updates automatically as you adjust the offset values. You can combine years, months, and days in a single calculation.
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:135-157`
+
+<Info>
+  Date calculations respect calendar system rules, including leap years and varying month lengths.
+</Info>
+
+## Calendar Support
+
+### Multiple Calendar Systems
+
+The Date Calculator supports various calendar systems based on your Windows settings:
+
+- Gregorian Calendar
+- Hebrew Calendar
+- Hijri Calendar
+- Japanese Calendar
+- Korean Calendar
+- Taiwan Calendar
+- Thai Calendar
+- And more
+
+The calendar system is automatically selected based on your regional settings.
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:33-34`
+
+### Localization Features
+
+- **First Day of Week** - Respects regional settings (Sunday or Monday)
+- **Date Format** - Uses locale-specific date formatting
+- **Language** - Displays in your system language
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:36-45`
+
+## Date Range
+
+The Date Calculator supports dates within the following range:
+
+- **Minimum Date:** January 1, 1601 (Gregorian)
+- **Maximum Date:** December 31, 2550
+
+<Note>
+  The maximum year is set to 2550 due to CalendarDatePicker control limitations. Future updates may extend this range.
+</Note>
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:249-250`
+
+## User Interface
+
+### Calendar Picker
+
+- Interactive calendar view for selecting dates
+- Click to select, or type dates directly
+- Keyboard navigation support
+- Touch-optimized for tablet devices
+
+### Context Menu
+
+Right-click on results to:
+- **Copy** - Copy the calculated result to clipboard
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:159-164`
+
+## Accessibility
+
+### Screen Reader Support
+
+- Automatic announcements when results change
+- Live region updates for dynamic content
+- Descriptive automation names for all controls
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:233-238`
+
+### Keyboard Navigation
+
+- **Tab** - Navigate between fields
+- **Arrow keys** - Navigate calendar
+- **Enter** - Confirm date selection
+- **Esc** - Close calendar picker
+
+## Data Persistence
+
+The Date Calculator maintains state when switching between modes:
+
+- The "From Date" field persists when switching between Date Difference and Add/Subtract modes
+- Previously entered values are retained when returning to Date Calculator
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:170-194`
+
+## Usage Telemetry
+
+The calculator logs anonymous usage data (in retail builds) to help improve the feature:
+
+- Which mode is used (Difference vs Add/Subtract)
+- Frequency of calculations
+- No actual date values are collected
+
+**Source Reference:** `src/Calculator/Views/DateCalculator.xaml.cs:113-156`
+
+## Common Use Cases
+
+- **Age calculations** - Calculate exact age from birthdate
+- **Project planning** - Determine project duration or end dates
+- **Event planning** - Calculate days until/since an event
+- **Financial planning** - Calculate payment periods and maturity dates
+- **Historical research** - Calculate time spans between historical events
+- **Travel planning** - Calculate trip durations and return dates
+
+## Related Features
+
+- [Standard Calculator](/features/standard-calculator) - Basic arithmetic operations
+- [Unit Converter](/features/unit-converter) - Convert between units of measurement

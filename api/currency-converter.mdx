@@ -1,0 +1,439 @@
+---
+title: "Currency Converter"
+description: "Currency conversion functionality with network data fetching and mock data support in development builds"
+---
+
+## Overview
+
+The Currency Converter is a specialized component of the Unit Converter system that handles conversion between different currencies. It uses the `ICurrencyConverterDataLoader` interface to fetch live exchange rates from the web in production builds, but uses **mock data in developer builds** as documented in the project README.
+
+<Warning>
+  **Mock Data in Development Builds**
+  
+  Windows Calculator includes a currency converter feature that uses mock data in developer builds. The data that Microsoft uses for the currency converter (in the retail version) is not licensed for your use.
+  
+  The mock data references **planets instead of countries** and remains static regardless of selected inputs.
+</Warning>
+
+## Currency Data Loading
+
+The `ICurrencyConverterDataLoader` interface extends the standard `IConverterDataLoader` with currency-specific functionality.
+
+**Header:** `~/workspace/source/src/CalcManager/UnitConverter.h:188`
+
+### Interface Methods
+
+#### SetViewModelCallback
+
+Registers a callback for currency-specific UI updates.
+
+```cpp
+void SetViewModelCallback(
+    const std::shared_ptr<IViewModelCurrencyCallback>& callback
+);
+```
+
+<ParamField path="callback" type="std::shared_ptr<IViewModelCurrencyCallback>">
+  Callback interface for receiving currency symbols, ratios, timestamps, and network behavior updates
+</ParamField>
+
+#### GetCurrencySymbols
+
+Retrieves the currency symbols for two units.
+
+```cpp
+std::pair<std::wstring, std::wstring> GetCurrencySymbols(
+    _In_ const Unit& unit1,
+    _In_ const Unit& unit2
+);
+```
+
+<ParamField path="unit1" type="const Unit&">
+  First currency unit
+</ParamField>
+
+<ParamField path="unit2" type="const Unit&">
+  Second currency unit
+</ParamField>
+
+**Returns:** Pair of currency symbols (e.g., "$", "€")
+
+#### GetCurrencyRatioEquality
+
+Retrieves formatted strings showing the conversion ratio between two currencies.
+
+```cpp
+std::pair<std::wstring, std::wstring> GetCurrencyRatioEquality(
+    _In_ const Unit& unit1,
+    _In_ const Unit& unit2
+);
+```
+
+<ParamField path="unit1" type="const Unit&">
+  Source currency unit
+</ParamField>
+
+<ParamField path="unit2" type="const Unit&">
+  Target currency unit
+</ParamField>
+
+**Returns:** Pair of formatted ratio strings (normal and accessible versions)
+
+**Example Output:** `("1 USD = 0.85 EUR", "1 US Dollar equals 0.85 Euros")`
+
+#### GetCurrencyTimestamp
+
+Retrieves the timestamp of when the currency data was last updated.
+
+```cpp
+std::wstring GetCurrencyTimestamp();
+```
+
+**Returns:** Formatted timestamp string
+
+#### TryLoadDataFromCacheAsync
+
+Attempts to load currency data from local cache asynchronously.
+
+```cpp
+std::future<bool> TryLoadDataFromCacheAsync();
+```
+
+**Returns:** Future resolving to `true` if cache data was loaded successfully, `false` otherwise
+
+#### TryLoadDataFromWebAsync
+
+Attempts to fetch fresh currency data from the web asynchronously.
+
+```cpp
+std::future<bool> TryLoadDataFromWebAsync();
+```
+
+**Returns:** Future resolving to `true` if web data was fetched successfully, `false` otherwise
+
+<Note>
+  In developer builds, this method returns mock data instead of making actual network requests.
+</Note>
+
+#### TryLoadDataFromWebOverrideAsync
+
+Forces a refresh of currency data from the web, overriding any existing cached data.
+
+```cpp
+std::future<bool> TryLoadDataFromWebOverrideAsync();
+```
+
+**Returns:** Future resolving to `true` if refresh succeeded, `false` otherwise
+
+See `UnitConverter.h:200`
+
+## Currency Callback Interface
+
+The `IViewModelCurrencyCallback` interface allows the view model to receive currency-specific updates.
+
+**Header:** `~/workspace/source/src/CalcManager/UnitConverter.h:166`
+
+### Callback Methods
+
+#### CurrencyDataLoadFinished
+
+Called when currency data loading completes.
+
+```cpp
+virtual void CurrencyDataLoadFinished(bool didLoad) = 0;
+```
+
+<ParamField path="didLoad" type="bool">
+  `true` if data loaded successfully, `false` if loading failed
+</ParamField>
+
+#### CurrencySymbolsCallback
+
+Called when currency symbols are available.
+
+```cpp
+virtual void CurrencySymbolsCallback(
+    _In_ const std::wstring& fromSymbol,
+    _In_ const std::wstring& toSymbol
+) = 0;
+```
+
+<ParamField path="fromSymbol" type="const std::wstring&">
+  Currency symbol for the source unit (e.g., "$")
+</ParamField>
+
+<ParamField path="toSymbol" type="const std::wstring&">
+  Currency symbol for the target unit (e.g., "€")
+</ParamField>
+
+#### CurrencyRatiosCallback
+
+Called with formatted currency conversion ratio strings.
+
+```cpp
+virtual void CurrencyRatiosCallback(
+    _In_ const std::wstring& ratioEquality,
+    _In_ const std::wstring& accRatioEquality
+) = 0;
+```
+
+<ParamField path="ratioEquality" type="const std::wstring&">
+  Standard formatted ratio string (e.g., "1 USD = 0.85 EUR")
+</ParamField>
+
+<ParamField path="accRatioEquality" type="const std::wstring&">
+  Accessibility-friendly ratio string (e.g., "1 US Dollar equals 0.85 Euros")
+</ParamField>
+
+#### CurrencyTimestampCallback
+
+Called with the timestamp of the currency data.
+
+```cpp
+virtual void CurrencyTimestampCallback(
+    _In_ const std::wstring& timestamp,
+    bool isWeekOldData
+) = 0;
+```
+
+<ParamField path="timestamp" type="const std::wstring&">
+  Formatted timestamp string indicating when rates were last updated
+</ParamField>
+
+<ParamField path="isWeekOldData" type="bool">
+  `true` if the data is more than a week old (may need refresh)
+</ParamField>
+
+#### NetworkBehaviorChanged
+
+Called when the network behavior or connectivity status changes.
+
+```cpp
+virtual void NetworkBehaviorChanged(_In_ int newBehavior) = 0;
+```
+
+<ParamField path="newBehavior" type="int">
+  New network behavior code
+</ParamField>
+
+## Currency Data Structures
+
+### CurrencyStaticData
+
+Static metadata for a currency.
+
+```cpp
+struct CurrencyStaticData {
+    std::wstring countryCode;
+    std::wstring countryName;
+    std::wstring currencyCode;
+    std::wstring currencyName;
+    std::wstring currencySymbol;
+};
+```
+
+<ParamField path="countryCode" type="std::wstring">
+  ISO country code (e.g., "US", "GB")
+</ParamField>
+
+<ParamField path="countryName" type="std::wstring">
+  Full country name (e.g., "United States")
+  
+  **In dev builds:** Planet name instead (e.g., "Mars", "Jupiter")
+</ParamField>
+
+<ParamField path="currencyCode" type="std::wstring">
+  ISO 4217 currency code (e.g., "USD", "EUR")
+</ParamField>
+
+<ParamField path="currencyName" type="std::wstring">
+  Full currency name (e.g., "US Dollar")
+</ParamField>
+
+<ParamField path="currencySymbol" type="std::wstring">
+  Currency symbol (e.g., "$", "€", "£")
+</ParamField>
+
+See `UnitConverter.h:143`
+
+### CurrencyRatio
+
+Conversion ratio between two currencies.
+
+```cpp
+struct CurrencyRatio {
+    double ratio;
+    std::wstring sourceCurrencyCode;
+    std::wstring targetCurrencyCode;
+};
+```
+
+<ParamField path="ratio" type="double">
+  Exchange rate from source to target currency
+</ParamField>
+
+<ParamField path="sourceCurrencyCode" type="std::wstring">
+  ISO 4217 code for the source currency
+</ParamField>
+
+<ParamField path="targetCurrencyCode" type="std::wstring">
+  ISO 4217 code for the target currency
+</ParamField>
+
+See `UnitConverter.h:152`
+
+## Currency Unit Construction
+
+Currency units have a specialized constructor that formats the display name differently:
+
+```cpp
+Unit(
+    int id,
+    std::wstring_view currencyName,
+    std::wstring_view countryName,
+    std::wstring abbreviation,
+    bool isRtlLanguage,
+    bool isConversionSource,
+    bool isConversionTarget
+);
+```
+
+<ParamField path="id" type="int">
+  Unique identifier for the currency unit
+</ParamField>
+
+<ParamField path="currencyName" type="std::wstring_view">
+  Name of the currency (e.g., "Dollar")
+</ParamField>
+
+<ParamField path="countryName" type="std::wstring_view">
+  Name of the country (e.g., "United States")  
+  **In dev builds:** Planet name (e.g., "Mars")
+</ParamField>
+
+<ParamField path="abbreviation" type="std::wstring">
+  Currency code (e.g., "USD")
+</ParamField>
+
+<ParamField path="isRtlLanguage" type="bool">
+  Whether the language is right-to-left (affects name formatting order)
+</ParamField>
+
+<ParamField path="isConversionSource" type="bool">
+  Whether this is the source unit
+</ParamField>
+
+<ParamField path="isConversionTarget" type="bool">
+  Whether this is the target unit
+</ParamField>
+
+**Name Formatting:**
+- For LTR languages: `"United States - Dollar"` → `name = "United States - Dollar"`
+- For RTL languages: `"Dollar - United States"` → `name = "Dollar - United States"`
+- Accessible name uses space instead of dash: `"United States Dollar"`
+
+See `UnitConverter.h:32`
+
+## Integration with UnitConverter
+
+The `UnitConverter` class integrates currency conversion through several methods:
+
+### UpdateCurrencySymbols
+
+Updates the currency symbols in the UI when units change.
+
+```cpp
+void UpdateCurrencySymbols();
+```
+
+This method is called internally when `SetCurrentUnitTypes()` or `SwitchActive()` is invoked for currency categories.
+
+See `UnitConverter.cpp:929`
+
+### Currency-Specific Calculation Behavior
+
+When converting currency values, the `Calculate()` method applies special formatting rules:
+
+```cpp
+if (isCurrencyConverter) {
+    // Currency uses MAXIMUMDIGITSALLOWED precision without scientific notation
+    m_returnDisplay = RoundSignificantDigits(returnValue, MAXIMUMDIGITSALLOWED);
+    TrimTrailingZeros(m_returnDisplay);
+}
+```
+
+Currency conversions:
+- Always use maximum precision (15 significant digits)
+- Never use scientific notation
+- Trim trailing zeros for cleaner display
+
+See `UnitConverter.cpp:890`
+
+## Usage Example
+
+```cpp
+// Create specialized currency data loader
+auto currencyLoader = std::make_shared<CurrencyDataLoader>();
+auto standardLoader = std::make_shared<ConverterDataLoader>();
+
+// Create converter with currency support
+auto converter = std::make_shared<UnitConverter>(standardLoader, currencyLoader);
+converter->Initialize();
+
+// Set up currency callback
+auto currencyCallback = std::make_shared<MyCurrencyCallback>();
+converter->SetViewModelCurrencyCallback(currencyCallback);
+
+// Select currency category
+auto categories = converter->GetCategories();
+for (const auto& cat : categories) {
+    if (cat.name == L"Currency") {
+        auto [units, fromUnit, toUnit] = converter->SetCurrentCategory(cat);
+        
+        // Find USD and EUR units
+        Unit usdUnit, eurUnit;
+        for (const auto& unit : units) {
+            if (unit.abbreviation == L"USD") usdUnit = unit;
+            if (unit.abbreviation == L"EUR") eurUnit = unit;
+        }
+        
+        // Set up USD to EUR conversion
+        converter->SetCurrentUnitTypes(usdUnit, eurUnit);
+        
+        // Input amount
+        converter->SendCommand(Command::One);
+        converter->SendCommand(Command::Zero);
+        converter->SendCommand(Command::Zero);
+        
+        // Refresh rates from web
+        auto refreshFuture = converter->RefreshCurrencyRatios();
+        auto [success, timestamp] = refreshFuture.get();
+        
+        break;
+    }
+}
+```
+
+## Mock Data Behavior
+
+As documented in the README (`~/workspace/source/README.md:64`):
+
+<Info>
+  **Developer Build Behavior**
+  
+  - Currency data uses **planets instead of countries**
+  - Exchange rates are **static** and do not change
+  - Network calls return mock data immediately
+  - Data "timestamp" reflects mock data generation, not real market data
+</Info>
+
+This allows developers to:
+- Test currency conversion UI without requiring API keys
+- Work offline without network dependencies
+- Have consistent, predictable test data
+
+## Related
+
+- [UnitConverter](/api/unit-converter) - Main converter class documentation
+- [Unit Struct](UnitConverter.h:16) - Currency units use the same Unit struct
+- [Category Struct](UnitConverter.h:82) - Currency is represented as a Category

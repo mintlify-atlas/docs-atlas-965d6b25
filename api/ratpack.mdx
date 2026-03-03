@@ -1,0 +1,704 @@
+---
+title: "RatPack (Rational Pack)"
+description: "Infinite precision arithmetic library for rational number calculations"
+---
+
+## Overview
+
+RatPack (Rational Pack) is an infinite precision mathematics library that represents numbers as rationals (fractions with numerator and denominator) to maintain perfect accuracy. It forms the foundation of Windows Calculator's calculation engine.
+
+## Core Data Types
+
+### NUMBER
+
+Represents an arbitrary precision integer in an internal radix.
+
+```cpp
+typedef struct _number {
+    int32_t sign;      // Sign: +1 or -1
+    int32_t cdigit;    // Number of digits
+    int32_t exp;       // Exponent (offset from radix point)
+    MANTTYPE mant[];   // Mantissa digits (variable length)
+} NUMBER, *PNUMBER;
+```
+
+**Fields:**
+- `sign`: The sign of the number (+1 for positive, -1 for negative)
+- `cdigit`: Number of "digits" in the internal BASEX radix (2^31)
+- `exp`: Exponent offset from the radix point
+- `mant[]`: Variable-length array of mantissa digits
+
+### RAT
+
+Represents a rational number as a ratio of two NUMBERs.
+
+```cpp
+typedef struct _rat {
+    PNUMBER pp;  // Numerator (p)
+    PNUMBER pq;  // Denominator (q)
+} RAT, *PRAT;
+```
+
+**Representation:** A rational number p/q where both p and q are arbitrary precision integers.
+
+## Constants
+
+RatPack provides pre-calculated constants for efficiency:
+
+```cpp
+// Basic integers
+extern PNUMBER num_one, num_two, num_five, num_six, num_ten;
+
+// Mathematical constants
+extern PRAT pi;              // π
+extern PRAT pi_over_two;     // π/2
+extern PRAT two_pi;          // 2π
+extern PRAT one_pt_five_pi;  // 1.5π
+extern PRAT rat_exp;         // e (Euler's number)
+
+// Rational values
+extern PRAT rat_zero;        // 0
+extern PRAT rat_one;         // 1
+extern PRAT rat_neg_one;     // -1
+extern PRAT rat_two;         // 2
+extern PRAT rat_six;         // 6
+extern PRAT rat_half;        // 1/2
+extern PRAT rat_ten;         // 10
+
+// Logarithms
+extern PRAT ln_ten;          // ln(10)
+extern PRAT ln_two;          // ln(2)
+
+// Angle conversions
+extern PRAT rad_to_deg;      // Radians to degrees factor
+extern PRAT rad_to_grad;     // Radians to gradians factor
+extern PRAT rat_360;         // 360 (degrees in circle)
+extern PRAT rat_400;         // 400 (gradians in circle)
+extern PRAT rat_180;         // 180
+extern PRAT rat_200;         // 200
+
+// Word sizes
+extern PRAT rat_qword;       // 2^64 (64-bit max)
+extern PRAT rat_dword;       // 2^32 (32-bit max)
+extern PRAT rat_word;        // 2^16 (16-bit max)
+extern PRAT rat_byte;        // 2^8 (8-bit max)
+
+// Limits
+extern PRAT rat_max_exp;     // Maximum exponent
+extern PRAT rat_min_exp;     // Minimum exponent
+extern PRAT rat_max_fact;    // Maximum factorial input
+extern PRAT rat_min_fact;    // Minimum factorial input
+extern PRAT rat_max_i32;     // Maximum 32-bit integer
+extern PRAT rat_min_i32;     // Minimum 32-bit integer
+```
+
+## Initialization
+
+### ChangeConstants()
+
+Recalculates constants when radix or precision changes.
+
+<ParamField path="radix" type="uint32_t" required>
+  The number base (2, 8, 10, or 16)
+</ParamField>
+
+<ParamField path="precision" type="int32_t" required>
+  Number of digits of precision
+</ParamField>
+
+```cpp
+void ChangeConstants(uint32_t radix, int32_t precision);
+```
+
+### SetDecimalSeparator()
+
+Sets the decimal separator character for string conversion.
+
+<ParamField path="decimalSeparator" type="wchar_t" required>
+  The decimal separator (e.g., '.' or ',')
+</ParamField>
+
+```cpp
+void SetDecimalSeparator(wchar_t decimalSeparator);
+```
+
+## Memory Management
+
+### createnum()
+
+Creates a new NUMBER with specified size.
+
+```cpp
+#define createnum(y, x) (y) = _createnum(x)
+```
+
+**Parameters:**
+- `y`: Variable to receive the NUMBER pointer
+- `x`: Number of digits to allocate
+
+### destroynum()
+
+Frees a NUMBER and sets pointer to nullptr.
+
+```cpp
+#define destroynum(x) _destroynum(x), (x) = nullptr
+```
+
+### createrat()
+
+Creates a new RAT (rational number).
+
+```cpp
+#define createrat(y) (y) = _createrat()
+```
+
+### destroyrat()
+
+Frees a RAT and sets pointer to nullptr.
+
+```cpp
+#define destroyrat(x) _destroyrat(x), (x) = nullptr
+```
+
+### Example
+
+```cpp
+PRAT a = nullptr;
+PRAT b = nullptr;
+
+// Create rational numbers
+createrat(a);
+createrat(b);
+
+// Use them...
+addrat(&a, b, precision);
+
+// Clean up
+destroyrat(a);
+destroyrat(b);
+```
+
+## Arithmetic Operations
+
+### Addition
+
+#### addrat()
+
+Adds two rational numbers: `a = a + b`
+
+<ParamField path="pa" type="PRAT*" required>
+  Pointer to first operand (modified in place)
+</ParamField>
+
+<ParamField path="b" type="PRAT" required>
+  Second operand
+</ParamField>
+
+<ParamField path="precision" type="int32_t" required>
+  Precision in digits
+</ParamField>
+
+```cpp
+void addrat(_Inout_ PRAT* pa, _In_ PRAT b, int32_t precision);
+```
+
+### Subtraction
+
+#### subrat()
+
+Subtracts two rational numbers: `a = a - b`
+
+```cpp
+void subrat(_Inout_ PRAT* pa, _In_ PRAT b, int32_t precision);
+```
+
+### Multiplication
+
+#### mulrat()
+
+Multiplies two rational numbers: `a = a * b`
+
+```cpp
+void mulrat(_Inout_ PRAT* pa, _In_ PRAT b, int32_t precision);
+```
+
+### Division
+
+#### divrat()
+
+Divides two rational numbers: `a = a / b`
+
+```cpp
+void divrat(_Inout_ PRAT* pa, _In_ PRAT b, int32_t precision);
+```
+
+### Example - Basic Arithmetic
+
+```cpp
+PRAT a = i32torat(5);   // a = 5
+PRAT b = i32torat(3);   // b = 3
+
+// Addition: 5 + 3 = 8
+addrat(&a, b, 32);
+
+// Result is now in 'a'
+int32_t result = rattoi32(a, 10, 32);  // Convert back to int32
+// result = 8
+
+destroyrat(a);
+destroyrat(b);
+```
+
+## Power and Root Operations
+
+### powrat()
+
+Raises a rational to a power: `a = a^b`
+
+```cpp
+void powrat(_Inout_ PRAT* pa, _In_ PRAT b, uint32_t radix, int32_t precision);
+```
+
+### rootrat()
+
+Computes the nth root: `a = b√a`
+
+```cpp
+void rootrat(_Inout_ PRAT* pa, _In_ PRAT b, uint32_t radix, int32_t precision);
+```
+
+### ratpowi32()
+
+Raises a rational to an integer power: `a = a^power`
+
+<ParamField path="proot" type="PRAT*" required>
+  Base value (modified in place)
+</ParamField>
+
+<ParamField path="power" type="int32_t" required>
+  Integer exponent
+</ParamField>
+
+```cpp
+void ratpowi32(_Inout_ PRAT* proot, int32_t power, int32_t precision);
+```
+
+## Trigonometric Functions
+
+All trigonometric functions use Taylor series for infinite precision.
+
+### Sine Functions
+
+#### sinanglerat()
+
+Computes sine with angle type handling.
+
+<ParamField path="px" type="PRAT*" required>
+  Input angle (modified to result)
+</ParamField>
+
+<ParamField path="angletype" type="AngleType" required>
+  Degrees, Radians, or Gradians
+</ParamField>
+
+```cpp
+void sinanglerat(
+    _Inout_ PRAT* px,
+    AngleType angletype,
+    uint32_t radix,
+    int32_t precision
+);
+```
+
+#### sinhrat()
+
+Computes hyperbolic sine.
+
+```cpp
+void sinhrat(_Inout_ PRAT* px, uint32_t radix, int32_t precision);
+```
+
+#### asinrat()
+
+Computes arc sine.
+
+```cpp
+void asinrat(_Inout_ PRAT* px, uint32_t radix, int32_t precision);
+```
+
+#### asinhrat()
+
+Computes inverse hyperbolic sine.
+
+```cpp
+void asinhrat(_Inout_ PRAT* px, uint32_t radix, int32_t precision);
+```
+
+### Cosine Functions
+
+#### cosanglerat()
+
+```cpp
+void cosanglerat(
+    _Inout_ PRAT* px,
+    AngleType angletype,
+    uint32_t radix,
+    int32_t precision
+);
+```
+
+#### coshrat(), acosrat(), acoshrat()
+
+Similar to sine functions.
+
+### Tangent Functions
+
+#### tananglerat()
+
+```cpp
+void tananglerat(
+    _Inout_ PRAT* px,
+    AngleType angletype,
+    uint32_t radix,
+    int32_t precision
+);
+```
+
+#### tanhrat(), atanrat(), atanhrat()
+
+Similar to sine functions.
+
+## Logarithmic and Exponential Functions
+
+### exprat()
+
+Computes e^x.
+
+```cpp
+void exprat(_Inout_ PRAT* px, uint32_t radix, int32_t precision);
+```
+
+### lograt()
+
+Computes natural logarithm (ln).
+
+```cpp
+void lograt(_Inout_ PRAT* px, int32_t precision);
+```
+
+### log10rat()
+
+Computes base-10 logarithm.
+
+```cpp
+void log10rat(_Inout_ PRAT* px, int32_t precision);
+```
+
+## Integer Functions
+
+### intrat()
+
+Extracts integer part of a rational.
+
+```cpp
+void intrat(_Inout_ PRAT* px, uint32_t radix, int32_t precision);
+```
+
+### fracrat()
+
+Extracts fractional part of a rational.
+
+```cpp
+void fracrat(_Inout_ PRAT* px, uint32_t radix, int32_t precision);
+```
+
+### factrat()
+
+Computes factorial.
+
+```cpp
+void factrat(_Inout_ PRAT* pa, uint32_t radix, int32_t precision);
+```
+
+### gcdrat()
+
+Reduces a rational to lowest terms (greatest common divisor).
+
+```cpp
+void gcdrat(_Inout_ PRAT* pa, int32_t precision);
+```
+
+## Bitwise Operations (Integer Mode)
+
+### andrat(), orrat(), xorrat()
+
+Bitwise AND, OR, XOR operations.
+
+```cpp
+void andrat(_Inout_ PRAT* pa, _In_ PRAT b, uint32_t radix, int32_t precision);
+void orrat(_Inout_ PRAT* pa, _In_ PRAT b, uint32_t radix, int32_t precision);
+void xorrat(_Inout_ PRAT* pa, _In_ PRAT b, uint32_t radix, int32_t precision);
+```
+
+### lshrat(), rshrat()
+
+Left and right bit shift operations.
+
+```cpp
+void lshrat(_Inout_ PRAT* pa, _In_ PRAT b, uint32_t radix, int32_t precision);
+void rshrat(_Inout_ PRAT* pa, _In_ PRAT b, uint32_t radix, int32_t precision);
+```
+
+### remrat(), modrat()
+
+Remainder and modulo operations.
+
+```cpp
+void remrat(_Inout_ PRAT* pa, _In_ PRAT b);
+void modrat(_Inout_ PRAT* pa, _In_ PRAT b);
+```
+
+## Comparison Operations
+
+### rat_equ(), rat_neq()
+
+Equality and inequality.
+
+```cpp
+bool rat_equ(_In_ PRAT a, _In_ PRAT b, int32_t precision);
+bool rat_neq(_In_ PRAT a, _In_ PRAT b, int32_t precision);
+```
+
+### rat_gt(), rat_ge(), rat_lt(), rat_le()
+
+Greater than, greater or equal, less than, less or equal.
+
+```cpp
+bool rat_gt(_In_ PRAT a, _In_ PRAT b, int32_t precision);
+bool rat_ge(_In_ PRAT a, _In_ PRAT b, int32_t precision);
+bool rat_lt(_In_ PRAT a, _In_ PRAT b, int32_t precision);
+bool rat_le(_In_ PRAT a, _In_ PRAT b, int32_t precision);
+```
+
+### zerrat(), zernum()
+
+Checks if a number is zero.
+
+```cpp
+bool zerrat(_In_ PRAT a);
+bool zernum(_In_ PNUMBER a);
+```
+
+## Conversion Functions
+
+### Integer to Rational
+
+#### i32torat()
+
+Converts 32-bit integer to rational.
+
+```cpp
+PRAT i32torat(int32_t ini32);
+```
+
+#### Ui32torat()
+
+Converts unsigned 32-bit integer to rational.
+
+```cpp
+PRAT Ui32torat(uint32_t inui32);
+```
+
+### Rational to Integer
+
+#### rattoi32()
+
+Converts rational to 32-bit integer.
+
+<ParamField path="prat" type="PRAT" required>
+  Rational number to convert
+</ParamField>
+
+<ParamField path="radix" type="uint32_t" required>
+  Number base
+</ParamField>
+
+<ParamField path="precision" type="int32_t" required>
+  Precision
+</ParamField>
+
+```cpp
+int32_t rattoi32(_In_ PRAT prat, uint32_t radix, int32_t precision);
+```
+
+#### rattoUi64()
+
+Converts rational to unsigned 64-bit integer.
+
+```cpp
+uint64_t rattoUi64(_In_ PRAT prat, uint32_t radix, int32_t precision);
+```
+
+### String Conversions
+
+#### StringToRat()
+
+Parses a string into a rational number.
+
+<ParamField path="mantissaIsNegative" type="bool" required>
+  Whether mantissa is negative
+</ParamField>
+
+<ParamField path="mantissa" type="std::wstring_view" required>
+  Mantissa digits
+</ParamField>
+
+<ParamField path="exponentIsNegative" type="bool" required>
+  Whether exponent is negative
+</ParamField>
+
+<ParamField path="exponent" type="std::wstring_view" required>
+  Exponent value
+</ParamField>
+
+<ParamField path="radix" type="uint32_t" required>
+  Number base
+</ParamField>
+
+<ParamField path="precision" type="int32_t" required>
+  Precision
+</ParamField>
+
+```cpp
+PRAT StringToRat(
+    bool mantissaIsNegative,
+    std::wstring_view mantissa,
+    bool exponentIsNegative,
+    std::wstring_view exponent,
+    uint32_t radix,
+    int32_t precision
+);
+```
+
+#### RatToString()
+
+Converts a rational to a formatted string.
+
+<ParamField path="prat" type="PRAT&" required>
+  Rational number (may be modified)
+</ParamField>
+
+<ParamField path="format" type="NumberFormat" required>
+  Float, Scientific, or Engineering
+</ParamField>
+
+<ParamField path="radix" type="uint32_t" required>
+  Number base
+</ParamField>
+
+<ParamField path="precision" type="int32_t" required>
+  Precision
+</ParamField>
+
+```cpp
+std::wstring RatToString(
+    _Inout_ PRAT& prat,
+    NumberFormat format,
+    uint32_t radix,
+    int32_t precision
+);
+```
+
+## Utility Macros and Functions
+
+### DUPRAT()
+
+Duplicates a rational number.
+
+```cpp
+#define DUPRAT(a, b)
+```
+
+**Effect:** Destroys `a`, creates new `a`, and copies `b` into it.
+
+### ABSRAT()
+
+Sets a rational to its absolute value.
+
+```cpp
+#define ABSRAT(x)
+```
+
+### SIGN()
+
+Gets the sign of a rational.
+
+```cpp
+#define SIGN(prat)  // Returns +1 or -1
+```
+
+### trimit()
+
+Trims a rational to specified precision.
+
+```cpp
+void trimit(_Inout_ PRAT* px, int32_t precision);
+```
+
+## Global Variables
+
+### g_ftrueinfinite
+
+Enables true infinite precision (no trimming).
+
+```cpp
+extern bool g_ftrueinfinite;
+```
+
+**Warning:** Use with caution as calculations may become very slow.
+
+### g_ratio
+
+Internal ratio between external radix and internal BASEX.
+
+```cpp
+extern int32_t g_ratio;
+```
+
+## Example - Complete Calculation
+
+```cpp
+#include "ratpak.h"
+
+// Initialize
+SetDecimalSeparator(L'.');
+ChangeConstants(10, 32);  // Base 10, 32 digits precision
+
+// Create rationals
+PRAT x = i32torat(45);     // 45 degrees
+PRAT result = nullptr;
+
+// Compute sin(45°)
+DUPRAT(result, x);
+sinanglerat(&result, AngleType::Degrees, 10, 32);
+
+// Convert to string
+std::wstring str = RatToString(result, NumberFormat::Float, 10, 32);
+// str ≈ "0.707106781186547524400844362104849"
+
+// Clean up
+destroyrat(x);
+destroyrat(result);
+```
+
+## Performance Considerations
+
+- Precision directly impacts performance - higher precision = slower calculations
+- Trigonometric functions use Taylor series and are slower than basic arithmetic
+- Use `gcdrat()` periodically to keep numerators/denominators from growing
+- Avoid `g_ftrueinfinite = true` unless absolutely necessary
+
+## See Also
+
+- [CCalcEngine](/api/calc-engine) - Calculation engine using RatPack
+- [CalculatorManager](/api/calculator-manager) - High-level calculator interface

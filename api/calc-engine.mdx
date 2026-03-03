@@ -1,0 +1,504 @@
+---
+title: "CCalcEngine"
+description: "Core calculation engine for Windows Calculator with support for infinite precision arithmetic"
+---
+
+## Overview
+
+The `CCalcEngine` class is the calculation engine that processes mathematical operations, maintains state, and performs infinite precision arithmetic using the RatPack library.
+
+## Constructor
+
+<ParamField path="fPrecedence" type="bool" required>
+  Enable order of operations precedence (true for Scientific/Programmer, false for Standard)
+</ParamField>
+
+<ParamField path="fIntegerMode" type="bool" required>
+  Restrict to integer-only calculations (true for Programmer mode)
+</ParamField>
+
+<ParamField path="pResourceProvider" type="IResourceProvider*" required>
+  Provider for localized strings and resources
+</ParamField>
+
+<ParamField path="pCalcDisplay" type="ICalcDisplay*">
+  Optional display callback interface
+</ParamField>
+
+<ParamField path="pHistoryDisplay" type="std::shared_ptr<IHistoryDisplay>">
+  Optional history display interface
+</ParamField>
+
+```cpp
+CCalcEngine(
+    bool fPrecedence,
+    bool fIntegerMode,
+    CalculationManager::IResourceProvider* const pResourceProvider,
+    __in_opt ICalcDisplay* pCalcDisplay,
+    __in_opt std::shared_ptr<IHistoryDisplay> pHistoryDisplay
+);
+```
+
+### Example
+
+```cpp
+#include "CalcEngine.h"
+
+IResourceProvider* resources = GetResourceProvider();
+ICalcDisplay* display = new MyDisplay();
+auto history = std::make_shared<MyHistoryDisplay>();
+
+// Create Scientific mode engine
+CCalcEngine* sciEngine = new CCalcEngine(
+    true,      // Enable precedence
+    false,     // Not integer mode
+    resources,
+    display,
+    history
+);
+
+// Create Programmer mode engine
+CCalcEngine* progEngine = new CCalcEngine(
+    true,      // Enable precedence
+    true,      // Integer mode
+    resources,
+    display,
+    nullptr    // No history in programmer mode
+);
+```
+
+## Initialization
+
+### InitialOneTimeOnlySetup()
+
+Initializes shared global variables. Must be called once before creating any engine instances.
+
+<ParamField path="resourceProvider" type="IResourceProvider&" required>
+  Resource provider for loading engine strings
+</ParamField>
+
+```cpp
+static void InitialOneTimeOnlySetup(
+    CalculationManager::IResourceProvider& resourceProvider
+);
+```
+
+### Example
+
+```cpp
+IResourceProvider& resources = GetResourceProvider();
+CCalcEngine::InitialOneTimeOnlySetup(resources);
+```
+
+## Command Processing
+
+### ProcessCommand()
+
+Processes a calculator command (digit, operator, function, etc.).
+
+<ParamField path="wID" type="OpCode" required>
+  The operation code to execute
+</ParamField>
+
+```cpp
+void ProcessCommand(OpCode wID);
+```
+
+### Example
+
+```cpp
+// Calculate 5 + 3
+engine->ProcessCommand(IDC_5);
+engine->ProcessCommand(IDC_PLUS);
+engine->ProcessCommand(IDC_3);
+engine->ProcessCommand(IDC_EQU);
+```
+
+## Display and Error Handling
+
+### DisplayError()
+
+Displays an error message to the user.
+
+<ParamField path="nError" type="uint32_t" required>
+  Error code (e.g., CALC_E_DOMAIN for invalid input)
+</ParamField>
+
+```cpp
+void DisplayError(uint32_t nError);
+```
+
+### FInErrorState()
+
+Checks if the calculator is currently in an error state.
+
+<ResponseField name="return" type="bool">
+  True if in error state, false otherwise
+</ResponseField>
+
+```cpp
+bool FInErrorState();
+```
+
+### FInRecordingState()
+
+Checks if the engine is recording input (building an expression).
+
+<ResponseField name="return" type="bool">
+  True if recording, false if displaying a result
+</ResponseField>
+
+```cpp
+bool FInRecordingState();
+```
+
+### IsInputEmpty()
+
+Checks if the current input is empty.
+
+<ResponseField name="return" type="bool">
+  True if input is empty or contains only "0"
+</ResponseField>
+
+```cpp
+bool IsInputEmpty();
+```
+
+## Memory Operations
+
+### PersistedMemObject() - Get
+
+Retrieves the persisted memory object.
+
+<ResponseField name="return" type="std::unique_ptr<CalcEngine::Rational>">
+  The current memory value as a Rational number
+</ResponseField>
+
+```cpp
+std::unique_ptr<CalcEngine::Rational> PersistedMemObject();
+```
+
+### PersistedMemObject() - Set
+
+Sets the persisted memory object.
+
+<ParamField path="memObject" type="CalcEngine::Rational const&" required>
+  The memory value to persist
+</ParamField>
+
+```cpp
+void PersistedMemObject(CalcEngine::Rational const& memObject);
+```
+
+### Example
+
+```cpp
+// Store current value in memory
+engine->ProcessCommand(IDC_STORE);
+auto memValue = engine->PersistedMemObject();
+
+// Later, restore the memory value
+engine->PersistedMemObject(*memValue);
+engine->ProcessCommand(IDC_RECALL);
+```
+
+## Precision and Radix
+
+### ChangePrecision()
+
+Changes the calculation precision.
+
+<ParamField path="precision" type="int32_t" required>
+  Number of digits of precision (16 for Standard, 32 for Scientific, 64 for Programmer)
+</ParamField>
+
+```cpp
+void ChangePrecision(int32_t precision);
+```
+
+**Note:** This method also updates internal constants based on the new precision.
+
+### GetCurrentRadix()
+
+Gets the current number base.
+
+<ResponseField name="return" type="uint32_t">
+  The current radix (2, 8, 10, or 16)
+</ResponseField>
+
+```cpp
+uint32_t GetCurrentRadix();
+```
+
+### UpdateMaxIntDigits()
+
+Updates the maximum integer digits based on current radix and word width.
+
+```cpp
+void UpdateMaxIntDigits();
+```
+
+## Display Formatting
+
+### GetCurrentResultForRadix()
+
+Gets the current result formatted in a specific radix.
+
+<ParamField path="radix" type="uint32_t" required>
+  The radix to format in (2, 8, 10, or 16)
+</ParamField>
+
+<ParamField path="precision" type="int32_t" required>
+  Number of digits of precision
+</ParamField>
+
+<ParamField path="groupDigitsPerRadix" type="bool" required>
+  Whether to group digits with separators
+</ParamField>
+
+<ResponseField name="return" type="std::wstring">
+  Formatted string representation
+</ResponseField>
+
+```cpp
+std::wstring GetCurrentResultForRadix(
+    uint32_t radix,
+    int32_t precision,
+    bool groupDigitsPerRadix
+);
+```
+
+### GroupDigitsPerRadix()
+
+Groups digits in a number string according to radix conventions.
+
+<ParamField path="numberString" type="std::wstring_view" required>
+  The number string to format
+</ParamField>
+
+<ParamField path="radix" type="uint32_t" required>
+  The radix (2, 8, 10, or 16)
+</ParamField>
+
+<ResponseField name="return" type="std::wstring">
+  Formatted string with digit grouping
+</ResponseField>
+
+```cpp
+std::wstring GroupDigitsPerRadix(
+    std::wstring_view numberString,
+    uint32_t radix
+);
+```
+
+**Grouping rules:**
+- Decimal (10): Groups of 3 digits (e.g., "1,234,567")
+- Binary (2): Groups of 4 bits (e.g., "1010 1100")
+- Octal (8): Groups of 3 digits
+- Hexadecimal (16): Groups of 4 digits
+
+### GetStringForDisplay()
+
+Converts a Rational number to a display string.
+
+<ParamField path="rat" type="CalcEngine::Rational const&" required>
+  The rational number to convert
+</ParamField>
+
+<ParamField path="radix" type="uint32_t" required>
+  The radix to display in
+</ParamField>
+
+<ResponseField name="return" type="std::wstring">
+  String representation of the number
+</ResponseField>
+
+```cpp
+std::wstring GetStringForDisplay(
+    CalcEngine::Rational const& rat,
+    uint32_t radix
+);
+```
+
+### DecimalSeparator()
+
+Gets the decimal separator character.
+
+<ResponseField name="return" type="wchar_t">
+  The decimal separator character (e.g., '.' or ',')
+</ResponseField>
+
+```cpp
+wchar_t DecimalSeparator() const;
+```
+
+## Trigonometry
+
+### IsCurrentTooBigForTrig()
+
+Checks if the current value exceeds the maximum safe value for trigonometric functions.
+
+<ResponseField name="return" type="bool">
+  True if value is too large, false otherwise
+</ResponseField>
+
+```cpp
+bool IsCurrentTooBigForTrig();
+```
+
+**Note:** Trigonometric functions lose accuracy for very large input values.
+
+## History
+
+### GetHistoryCollectorCommandsSnapshot()
+
+Gets a snapshot of expression commands for history display.
+
+<ResponseField name="return" type="std::vector<std::shared_ptr<IExpressionCommand>>">
+  Vector of expression commands
+</ResponseField>
+
+```cpp
+std::vector<std::shared_ptr<IExpressionCommand>> GetHistoryCollectorCommandsSnapshot() const;
+```
+
+## String Utilities
+
+### GetString()
+
+Gets a localized string by ID.
+
+<ParamField path="ids" type="int" required>
+  String resource ID
+</ParamField>
+
+<ResponseField name="return" type="std::wstring_view">
+  The localized string
+</ResponseField>
+
+```cpp
+static std::wstring_view GetString(int ids);
+```
+
+### GetString() - by name
+
+<ParamField path="ids" type="std::wstring_view" required>
+  String resource name
+</ParamField>
+
+```cpp
+static std::wstring_view GetString(std::wstring_view ids);
+```
+
+### OpCodeToString()
+
+Converts an operation code to its string representation.
+
+<ParamField path="nOpCode" type="int" required>
+  The operation code
+</ParamField>
+
+<ResponseField name="return" type="std::wstring_view">
+  String representation (e.g., "+", "×", "sin")
+</ResponseField>
+
+```cpp
+static std::wstring_view OpCodeToString(int nOpCode);
+```
+
+### OpCodeToUnaryString()
+
+Converts a unary operation to its string representation.
+
+<ParamField path="nOpCode" type="int" required>
+  The operation code
+</ParamField>
+
+<ParamField path="fInv" type="bool" required>
+  Whether inverse function is active
+</ParamField>
+
+<ParamField path="angletype" type="AngleType" required>
+  Current angle type (Degrees, Radians, Gradians)
+</ParamField>
+
+```cpp
+static std::wstring_view OpCodeToUnaryString(
+    int nOpCode,
+    bool fInv,
+    AngleType angletype
+);
+```
+
+### OpCodeToBinaryString()
+
+Converts a binary operation to its string representation.
+
+<ParamField path="nOpCode" type="int" required>
+  The operation code
+</ParamField>
+
+<ParamField path="isIntegerMode" type="bool" required>
+  Whether in integer mode
+</ParamField>
+
+```cpp
+static std::wstring_view OpCodeToBinaryString(
+    int nOpCode,
+    bool isIntegerMode
+);
+```
+
+## Enumerations
+
+### NUM_WIDTH
+
+Defines word size for programmer mode.
+
+```cpp
+enum class NUM_WIDTH {
+    QWORD_WIDTH,  // 64 bits (default)
+    DWORD_WIDTH,  // 32 bits
+    WORD_WIDTH,   // 16 bits
+    BYTE_WIDTH    // 8 bits
+};
+```
+
+### NumberFormat
+
+Defines number formatting styles.
+
+```cpp
+enum class NumberFormat {
+    Float,         // Floating point or exponential if too large
+    Scientific,    // Always scientific notation (e.g., 1.23e+10)
+    Engineering    // Engineering notation (exponent multiple of 3)
+};
+```
+
+### AngleType
+
+Defines angle units for trigonometric functions.
+
+```cpp
+enum class AngleType {
+    Degrees,   // 360 degrees per revolution
+    Radians,   // 2π radians per revolution
+    Gradians   // 400 gradians per revolution
+};
+```
+
+## Internal State
+
+The engine maintains:
+- **Current value** (`m_currentVal`): Currently displayed number
+- **Last value** (`m_lastVal`): Left operand of pending operation
+- **Hold value** (`m_holdVal`): For repetitive calculations (pressing "=" multiple times)
+- **Parenthesis stack** (`m_parenVals`): Values saved when opening parentheses
+- **Precedence stack** (`m_precedenceVals`): Values for order of operations
+- **Operation state**: Current and previous operations, flags for inverse, error, etc.
+
+## See Also
+
+- [CalculatorManager](/api/calculator-manager) - High-level calculator interface
+- [RatPack](/api/ratpack) - Infinite precision arithmetic library

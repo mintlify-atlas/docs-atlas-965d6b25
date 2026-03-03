@@ -1,0 +1,254 @@
+---
+title: Pull Request Process
+description: How to submit and get your pull requests reviewed and merged
+---
+
+This guide walks you through the process of submitting pull requests to Windows Calculator and what to expect during the review process.
+
+## Before You Submit
+
+<Warning>
+  **DO NOT** submit a PR unless it is linked to an Issue marked [`triage approved`](https://github.com/Microsoft/calculator/issues?q=is%3Aissue+is%3Aopen+label%3A%22Triage%3A+Approved%22). This enables us to have a discussion on the idea before anyone invests time in an implementation.
+</Warning>
+
+### Prerequisites
+
+1. Find or create an issue marked `triage approved`
+2. Comment on the issue to let others know you're working on it
+3. Fork the repository and create a feature branch
+4. Make your changes following the [code style guidelines](/contributing/code-style)
+5. Test your changes thoroughly
+
+## Creating a Pull Request
+
+### PR Requirements
+
+**DO** when creating your PR:
+
+- Create one pull request per issue
+- Link the issue in the PR description
+- Write a detailed description explaining:
+  - **Why** the change is being made
+  - **Why** you chose this particular solution
+  - What manual testing you performed
+- Keep code changes as small as possible
+- Include corresponding tests whenever possible
+- Check for additional occurrences of the same problem in other parts of the codebase
+
+**DO NOT**:
+
+- Merge multiple unrelated changes into one PR
+- Submit pure formatting/typo changes to code that has not been modified otherwise
+- Submit without linking to an approved issue
+
+### PR Description Template
+
+```markdown
+## Summary
+Brief description of the change.
+
+## Related Issue
+Fixes #[issue number]
+
+## Motivation
+Explain why this change is needed and what problem it solves.
+
+## Solution
+Describe your approach and why you chose this solution over alternatives.
+
+## Testing
+Describe the testing you performed:
+- Unit tests added/updated
+- Manual testing steps
+- Edge cases tested
+
+## Screenshots (if applicable)
+Add screenshots for UI changes.
+```
+
+## Git Workflow
+
+<Accordion title="Branch Management">
+  Calculator uses the [GitHub flow](https://guides.github.com/introduction/flow/) where most development happens directly on the `main` branch.
+  
+  1. Create a feature branch from `main`:
+     ```bash
+     git checkout -b fix/issue-123-description
+     ```
+  
+  2. Make your changes in logical commits
+  
+  3. Push to your fork:
+     ```bash
+     git push origin fix/issue-123-description
+     ```
+  
+  4. Create a pull request from your fork to `microsoft/calculator:main`
+</Accordion>
+
+### Commit History
+
+If your change is complex, please clean up the branch history before submitting a pull request. You can use [git rebase](https://docs.microsoft.com/en-us/azure/devops/repos/git/rebase#squash-local-commits) to group your changes into a small number of commits which we can review one at a time.
+
+<Note>
+  When completing a pull request, we will generally squash your changes into a single commit. Please let us know if your pull request needs to be merged as separate commits.
+</Note>
+
+## Contributor License Agreement
+
+Before your PR can be merged, you'll need to sign a Contributor License Agreement (CLA).
+
+<Accordion title="CLA Process">
+  The CLA process is automated:
+  
+  1. When you create a PR, a bot will classify it:
+     - **`cla-not-required`**: Trivial changes (e.g., typo fixes)
+     - **`cla-required`**: Substantive changes requiring a CLA
+  
+  2. For `cla-required` PRs:
+     - The bot will comment with instructions on how to sign
+     - Follow the link to sign the CLA
+     - Once signed, the PR will be labeled `cla-signed`
+  
+  3. You only need to sign once for all Microsoft projects on GitHub
+  
+  More information: [Microsoft CLA](https://cla.opensource.microsoft.com/)
+</Accordion>
+
+## Review Process
+
+After submitting a pull request, members of the Calculator team will review your code.
+
+### What to Expect
+
+1. **Assignment**: A team member will be assigned to review your PR
+2. **Community Review**: Any community member may participate in the review
+3. **Iterations**: Multiple rounds of feedback are common
+4. **Approval**: At least one Calculator team member must approve before merging
+
+<Note>
+  Try looking at [past pull requests](https://github.com/Microsoft/calculator/pulls?q=is%3Apr+is%3Aclosed) to see what the review experience might be like.
+</Note>
+
+### Review Criteria
+
+Reviewers will check:
+
+<Accordion title="Code Quality">
+  - Follows [code style guidelines](/contributing/code-style)
+  - Code is clean, readable, and maintainable
+  - Appropriate comments for complex logic
+  - No unnecessary changes or reformatting
+  - Consistent with existing codebase patterns
+</Accordion>
+
+<Accordion title="Functionality">
+  - Solves the problem described in the linked issue
+  - Handles edge cases appropriately
+  - Includes proper error handling
+  - No unintended side effects
+</Accordion>
+
+<Accordion title="Testing">
+  - Includes unit tests for new functionality
+  - Existing tests still pass
+  - Manual testing was performed
+  - Test coverage is adequate
+</Accordion>
+
+<Accordion title="Architecture">
+  - Fits well with existing architecture
+  - Doesn't introduce unnecessary dependencies
+  - Follows separation of concerns
+  - Reuses existing components where appropriate
+</Accordion>
+
+### Responding to Feedback
+
+When reviewers provide feedback:
+
+1. **Address all comments**: Either make the requested change or explain why you disagree
+2. **Push new commits**: Add commits with your changes; don't force-push during review
+3. **Reply to comments**: Let reviewers know when you've addressed their feedback
+4. **Ask questions**: If feedback is unclear, ask for clarification
+
+<Note>
+  Be patient and professional. Multiple iterations are normal, and reviewers are trying to help maintain code quality.
+</Note>
+
+## Technical Review for Features
+
+New features require more thorough technical review than bug fixes. See the [feature process documentation](/contributing/feature-process) for the complete technical review checklist.
+
+<Warning>
+  Submitting a pull request for an approved issue is not a guarantee it will be approved. The change must meet high standards for code quality, architecture, and performance.
+</Warning>
+
+Key areas for feature reviews:
+
+- Accessibility compliance
+- Globalization support
+- Performance impact
+- Windows version compatibility
+- Suspend/resume handling
+- Theme support (light, dark, high contrast)
+- Device family compatibility
+
+## After Approval
+
+Once your PR is approved:
+
+1. A team member will merge your changes
+2. Your commits will typically be squashed into a single commit
+3. The linked issue will be automatically closed
+4. Your contribution will be included in the next release
+
+<Note>
+  Thank you for contributing to Windows Calculator! Your efforts help make the app better for millions of users.
+</Note>
+
+## Troubleshooting
+
+<Accordion title="My PR is marked as conflicts">
+  If your PR has merge conflicts:
+  
+  ```bash
+  # Update your local main branch
+  git checkout main
+  git pull upstream main
+  
+  # Rebase your feature branch
+  git checkout your-feature-branch
+  git rebase main
+  
+  # Resolve conflicts, then
+  git add .
+  git rebase --continue
+  
+  # Force push to update your PR
+  git push --force-with-lease
+  ```
+</Accordion>
+
+<Accordion title="Checks are failing">
+  If automated checks fail:
+  
+  1. Click on the failing check to see details
+  2. Fix the issues locally
+  3. Push new commits to your branch
+  4. The checks will run automatically
+  
+  Common issues:
+  - Build failures: Check compiler errors
+  - Test failures: Run tests locally
+  - Code style: Ensure formatting matches guidelines
+</Accordion>
+
+<Accordion title="No response from reviewers">
+  If you haven't received feedback after a week:
+  
+  1. Check that the PR is ready for review (not marked as draft)
+  2. Ensure all checks are passing
+  3. Add a polite comment asking for a review
+  4. Be patient - reviewers are often busy with other work
+</Accordion>

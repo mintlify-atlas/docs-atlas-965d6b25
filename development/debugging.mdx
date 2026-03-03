@@ -1,0 +1,486 @@
+---
+title: Debugging Techniques
+description: Learn how to debug Windows Calculator effectively using Visual Studio and diagnostic tools
+---
+
+This guide covers debugging techniques and tips for developing Windows Calculator, from basic Visual Studio debugging to advanced diagnostic tools.
+
+## Debugging in Visual Studio
+
+Visual Studio provides powerful debugging capabilities for both C++ and C# code in Calculator.
+
+### Starting a Debug Session
+
+<Steps>
+  <Step title="Set Your Startup Project">
+    Right-click the **Calculator** project in Solution Explorer and select **Set as Startup Project**.
+  </Step>
+
+  <Step title="Choose Debug Configuration">
+    Select **Debug** from the configuration dropdown in the toolbar. Debug builds include:
+    - Full debugging symbols
+    - Minimal optimization
+    - Enabled assertions
+    - Better stack traces
+  </Step>
+
+  <Step title="Start Debugging">
+    <CodeGroup>
+    ```text With Debugger (F5)
+    Press F5 to build, deploy, and launch with debugger attached
+    ```
+
+    ```text Without Debugger (Ctrl+F5)
+    Press Ctrl+F5 to run without debugging for better performance
+    ```
+
+    ```text Attach to Running Process
+    Debug > Attach to Process > Select Calculator.exe
+    ```
+    </CodeGroup>
+  </Step>
+</Steps>
+
+### Breakpoints
+
+Set breakpoints to pause execution and inspect state:
+
+<Steps>
+  <Step title="Basic Breakpoints">
+    - Click in the left margin next to a line of code
+    - Or press **F9** with the cursor on a line
+    - Breakpoint appears as a red dot
+  </Step>
+
+  <Step title="Conditional Breakpoints">
+    Right-click a breakpoint and select **Conditions** to:
+    - Break only when a condition is true
+    - Break when a value changes
+    - Break after a hit count threshold
+
+    ```cpp
+    // Example: Break only when result is negative
+    if (result < 0)  // Set condition: result < 0
+    {
+        return result;
+    }
+    ```
+  </Step>
+
+  <Step title="Function Breakpoints">
+    Set breakpoints on function names:
+    - **Debug > New Breakpoint > Function Breakpoint**
+    - Enter function name (e.g., `CalculatorManager::Calculate`)
+  </Step>
+</Steps>
+
+### Inspecting Variables
+
+Visual Studio provides multiple ways to examine variables:
+
+| Tool | Shortcut | Description |
+|------|----------|-------------|
+| **Autos** | Ctrl+Alt+V, A | Shows variables in current and previous statements |
+| **Locals** | Ctrl+Alt+V, L | Displays all local variables in current scope |
+| **Watch** | Ctrl+Alt+W, 1-4 | Custom watch windows for specific expressions |
+| **Quick Watch** | Shift+F9 | Popup window for evaluating expressions |
+| **Data Tips** | Hover | Hover over variables to see their values |
+
+<Note>
+  Pin frequently used variables in data tips to keep them visible as you step through code.
+</Note>
+
+### Stepping Through Code
+
+<CodeGroup>
+```text Step Into (F11)
+Steps into function calls to debug the called function
+```
+
+```text Step Over (F10)
+Executes the current line without stepping into functions
+```
+
+```text Step Out (Shift+F11)
+Runs until the current function returns
+```
+
+```text Run to Cursor (Ctrl+F10)
+Executes until reaching the cursor position
+```
+</CodeGroup>
+
+## Debugging Mixed C++/C# Code
+
+Calculator uses both C++ (CalcManager, CalcViewModel) and C# (UI layer), requiring mixed-mode debugging:
+
+<Steps>
+  <Step title="Enable Mixed-Mode Debugging">
+    1. Right-click the **Calculator** project
+    2. Select **Properties**
+    3. Go to **Debug** tab
+    4. Check **Enable native code debugging**
+  </Step>
+
+  <Step title="Set Breakpoints in Both Languages">
+    - Set breakpoints in C# UI code (Calculator project)
+    - Set breakpoints in C++ code (CalcManager, CalcViewModel)
+    - Debugger will break in both when hit
+  </Step>
+
+  <Step title="Navigate Between Managed and Native">
+    Use the **Call Stack** window (Ctrl+Alt+C) to:
+    - See the full call chain across C# and C++
+    - Navigate between managed and native frames
+    - Identify which layer a problem originates from
+  </Step>
+</Steps>
+
+## Debugging Specific Components
+
+### CalcManager (Calculation Engine)
+
+The C++ calculation engine is in the **CalcManager** project:
+
+```cpp
+// Common breakpoint locations:
+// src/CalcManager/CalculatorManager.cpp
+void CalculatorManager::SendCommand(_In_ Command command)
+{
+    // Break here to see all calculation commands
+}
+
+// src/CalcManager/Ratpack/Conv.cpp
+void ChangeBase(/* ... */)
+{
+    // Break here for base conversion debugging
+}
+```
+
+<Note>
+  CalcManager uses arbitrary-precision arithmetic. Watch the internal number representation in the **Number** class for precision-related issues.
+</Note>
+
+### CalcViewModel (View Models)
+
+The C++ view models bridge the UI and calculation engine:
+
+```cpp
+// Common breakpoint locations:
+// src/CalcViewModel/StandardCalculatorViewModel.cpp
+void StandardCalculatorViewModel::OnButtonPressed(NumbersAndOperatorsEnum button)
+{
+    // Break here to debug button press handling
+}
+
+// src/CalcViewModel/Common/CalculatorDisplay.cpp
+void CalculatorDisplay::SetPrimaryDisplay(_In_ wstring displayString)
+{
+    // Break here to debug display updates
+}
+```
+
+### UI Layer (C# Code)
+
+The XAML UI and C# code-behind:
+
+```csharp
+// Common breakpoint locations:
+// src/Calculator/Views/Calculator.xaml.cs
+private void OnButtonClick(object sender, RoutedEventArgs e)
+{
+    // Break here for UI button handling
+}
+
+// src/Calculator/Views/MainPage.xaml.cs  
+private void OnNavigationViewSelectionChanged(/* ... */)
+{
+    // Break here for mode switching
+}
+```
+
+## Advanced Debugging Techniques
+
+### Memory Analysis
+
+For investigating memory leaks or high memory usage:
+
+<Steps>
+  <Step title="Take Memory Snapshots">
+    1. **Debug > Performance Profiler**
+    2. Select **.NET Object Allocation Tracking** and **Memory Usage**
+    3. Start debugging
+    4. Take snapshots at different points
+    5. Compare snapshots to find leaks
+  </Step>
+
+  <Step title="Analyze Native Memory">
+    For C++ components:
+    - Use the **Diagnostic Tools** window (Ctrl+Alt+F2)
+    - Monitor memory usage over time
+    - Look for steadily increasing memory
+  </Step>
+</Steps>
+
+### Performance Profiling
+
+Profile Calculator to identify performance bottlenecks:
+
+<Steps>
+  <Step title="CPU Profiling">
+    1. **Debug > Performance Profiler**
+    2. Select **CPU Usage**
+    3. Click **Start**
+    4. Perform operations in Calculator
+    5. Stop profiling and analyze results
+  </Step>
+
+  <Step title="Identify Hot Paths">
+    Look for:
+    - Functions with high **Self CPU** time
+    - Functions called frequently
+    - Unexpected calculation overhead
+  </Step>
+</Steps>
+
+### XAML Debugging
+
+Debug UI issues with XAML-specific tools:
+
+<Steps>
+  <Step title="Live Visual Tree">
+    **Debug > Windows > Live Visual Tree** to:
+    - Inspect the visual element hierarchy
+    - Find elements by type or name
+    - Navigate to XAML source
+  </Step>
+
+  <Step title="Live Property Explorer">
+    **Debug > Windows > Live Property Explorer** to:
+    - View and modify properties in real-time
+    - See style and template sources
+    - Debug data binding issues
+  </Step>
+
+  <Step title="XAML Binding Failures">
+    Enable binding failure breaks:
+    1. **Debug > Windows > Exception Settings**
+    2. Check **Common Language Runtime Exceptions**
+    3. Look for binding errors in Output window
+  </Step>
+</Steps>
+
+## Diagnostic Data
+
+Calculator includes diagnostic telemetry that can be enabled for debugging:
+
+<Steps>
+  <Step title="Enable Diagnostics">
+    Add the `SEND_DIAGNOSTICS` build flag:
+
+    ```powershell
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Debug `
+      -p:DefineConstants=SEND_DIAGNOSTICS
+    ```
+  </Step>
+
+  <Step title="View Diagnostic Output">
+    Diagnostic events appear in:
+    - Visual Studio **Output** window
+    - Windows Event Viewer
+    - ETW trace sessions
+  </Step>
+</Steps>
+
+<Note>
+  Diagnostic data is **disabled by default** in development builds and requires explicit opt-in via the build flag.
+</Note>
+
+## Logging and Tracing
+
+Calculator uses the **TraceLogging** project for diagnostic output:
+
+```cpp
+// Example: Add custom trace logging
+#include "TraceLogging.h"
+
+TraceLoggingWrite(
+    g_calculatorProvider,
+    "CalculationPerformed",
+    TraceLoggingKeyword(MICROSOFT_KEYWORD_MEASURES),
+    TraceLoggingValue(command, "Command"),
+    TraceLoggingValue(result, "Result")
+);
+```
+
+View traces using:
+- **Windows Performance Recorder (WPR)**
+- **Windows Performance Analyzer (WPA)**
+- **PerfView**
+
+## Common Debugging Scenarios
+
+### Calculation Errors
+
+<Steps>
+  <Step title="Set Breakpoint in CalcManager">
+    ```cpp
+    // src/CalcManager/CalculatorManager.cpp
+    void CalculatorManager::SendCommand(_In_ Command command)
+    ```
+  </Step>
+
+  <Step title="Inspect Command Flow">
+    Watch:
+    - `command` parameter value
+    - Current state in `m_currentState`
+    - Display value in `m_displayValue`
+  </Step>
+
+  <Step title="Step Into Calculation Logic">
+    Press **F11** to step into the calculation engine and trace the exact computation.
+  </Step>
+</Steps>
+
+### UI Not Updating
+
+<Steps>
+  <Step title="Check Data Binding">
+    In **Live Property Explorer**, verify:
+    - Binding source is correct
+    - Property change notifications fire
+    - Values are being updated
+  </Step>
+
+  <Step title="Verify ViewModel Updates">
+    Set breakpoint in view model property setters:
+    ```cpp
+    void StandardCalculatorViewModel::SetDisplayValue(wstring value)
+    {
+        // Break here to see when display updates
+    }
+    ```
+  </Step>
+</Steps>
+
+### Crashes on Startup
+
+<Steps>
+  <Step title="Enable First-Chance Exceptions">
+    **Debug > Windows > Exception Settings**
+    
+    Check:
+    - **C++ Exceptions**
+    - **Common Language Runtime Exceptions**
+  </Step>
+
+  <Step title="Check Call Stack on Crash">
+    When the exception breaks, examine:
+    - **Call Stack** window for crash location
+    - **Locals** for invalid values
+    - **Exception details** for error message
+  </Step>
+</Steps>
+
+## Debugging Tests
+
+### Unit Tests
+
+Debug failing unit tests:
+
+<Steps>
+  <Step title="Open Test Explorer">
+    **Test > Test Explorer** (Ctrl+E, T)
+  </Step>
+
+  <Step title="Debug Individual Test">
+    - Right-click a test
+    - Select **Debug**
+    - Set breakpoints in test or code under test
+  </Step>
+</Steps>
+
+### UI Tests
+
+Debug WinAppDriver UI tests:
+
+<Steps>
+  <Step title="Attach to Both Processes">
+    Attach debugger to:
+    - **CalculatorUITests.exe** (test process)
+    - **Calculator.exe** (app under test)
+  </Step>
+
+  <Step title="Add Delays for Debugging">
+    ```csharp
+    // Add temporary delay to attach debugger
+    System.Threading.Thread.Sleep(10000);
+    ```
+  </Step>
+
+  <Step title="Enable WinAppDriver Logging">
+    Start WinAppDriver with verbose logging:
+    ```powershell
+    "C:\Program Files\Windows Application Driver\WinAppDriver.exe" /log
+    ```
+  </Step>
+</Steps>
+
+## Debugging Tools
+
+### Built into Visual Studio
+
+- **Diagnostic Tools** - Real-time CPU, memory, and events
+- **Performance Profiler** - Deep performance analysis
+- **Live Visual Tree** - XAML element inspection
+- **IntelliTrace** - Historical debugging (Enterprise only)
+
+### External Tools
+
+- **WinDbg** - Advanced native debugging
+- **PerfView** - Performance and memory analysis
+- **Sysinternals Suite** - Process Explorer, Process Monitor
+- **ETW/WPR/WPA** - Event tracing and analysis
+
+## Tips and Best Practices
+
+<Steps>
+  <Step title="Use Meaningful Variable Names">
+    Clear names make debugging easier in watch windows and call stacks.
+  </Step>
+
+  <Step title="Add Debug Assertions">
+    ```cpp
+    assert(denominator != 0 && "Division by zero");
+    ```
+    Assertions catch bugs early in debug builds.
+  </Step>
+
+  <Step title="Log at Key Points">
+    Add TraceLogging at important decision points to reconstruct execution flow.
+  </Step>
+
+  <Step title="Reproduce Consistently">
+    Find the exact steps to reproduce issues before deep debugging.
+  </Step>
+
+  <Step title="Debug in Isolation">
+    Test components independently when possible:
+    - Unit test CalcManager logic separately
+    - Test view models without UI
+    - Mock dependencies
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Contributing Guidelines" icon="book" href="/contributing/guidelines">
+    Learn how to contribute fixes and features
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/architecture/overview">
+    Understand Calculator's architecture
+  </Card>
+</CardGroup>

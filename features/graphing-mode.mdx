@@ -1,0 +1,324 @@
+---
+title: Graphing Calculator
+description: Plot mathematical functions and analyze graphs with tracing and key features
+---
+
+The Graphing Calculator mode allows you to plot mathematical equations, analyze graphs, and explore key features like intercepts, maxima, and minima.
+
+<Note>
+  **Developer Builds:** Graphing mode uses a mock engine implementation. The proprietary Microsoft graphing engine is not included in the open-source repository. The UI is fully functional and community members can contribute to the interface design.
+</Note>
+
+**Source Reference:** README.md:54-56
+
+## Overview
+
+Graphing mode provides a full-featured graphing calculator experience with support for multiple equations, variables, interactive tracing, and mathematical analysis.
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs`
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Multi-Equation Graphing" icon="chart-line">
+    Plot multiple equations simultaneously with color coding
+  </Card>
+  <Card title="Interactive Tracing" icon="location-crosshairs">
+    Trace along curves to find exact coordinate values
+  </Card>
+  <Card title="Key Graph Features" icon="star">
+    Automatically identify zeros, intercepts, maxima, and minima
+  </Card>
+  <Card title="Variables Support" icon="x">
+    Define and use variables in your equations
+  </Card>
+  <Card title="Zoom Controls" icon="magnifying-glass">
+    Zoom in/out and pan to explore the graph
+  </Card>
+  <Card title="Share & Export" icon="share-nodes">
+    Share graphs as images with equations
+  </Card>
+</CardGroup>
+
+## Dual-Mode Interface
+
+The graphing calculator offers two modes:
+
+### Graph Mode
+
+- Full graph display
+- Zoom and pan controls
+- Interactive tracing
+- Graph settings access
+
+### Equation Mode
+
+- Equation input area
+- Add/remove equations
+- Edit variables
+- Key graph features panel
+
+Switch between modes using the toggle button.
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:662-677`
+
+## Equation Input
+
+### Supported Functions
+
+The graphing calculator supports standard mathematical notation:
+
+- **Basic operators:** +, -, *, /
+- **Exponents:** x^2, x^n
+- **Trigonometric:** sin, cos, tan
+- **Logarithmic:** log, ln
+- **Constants:** π (pi), e
+- **Parentheses:** ( ) for grouping
+
+### Multi-Equation Support
+
+- Add multiple equations using the "+" button
+- Each equation has a unique color
+- Toggle equation visibility
+- Delete equations individually
+- Reorder equations
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:277-325`
+
+### MathML Formatting
+
+Equations are displayed with beautiful mathematical formatting:
+
+- Proper fraction rendering
+- Exponent superscripts
+- Mathematical symbols
+- Real-time formatting as you type
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:824-830`
+
+## Variables
+
+Define custom variables to use in equations:
+
+### Variable Management
+
+- Create variables with any single-letter name
+- Assign numeric values
+- Use variables across multiple equations
+- Edit variable values and see graph update in real-time
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:272-275`
+
+### Variable Editor
+
+Access the variable editor to:
+
+- View all defined variables
+- Edit variable values
+- See which equations use each variable
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:530-533`
+
+<Info>
+  Variables are automatically detected when you use them in equations. No need to declare them separately.
+</Info>
+
+## Interactive Graph Features
+
+### Zoom Controls
+
+- **Zoom In** - Ctrl + Plus key or button
+- **Zoom Out** - Ctrl + Minus key or button
+- **Zoom from Center** - Maintains graph center point
+- **Pinch Zoom** - Touch gesture support
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:327-337`
+
+### Pan & Manipulation
+
+- Click and drag to pan the graph
+- Touch gestures for mobile devices
+- Automatic grid adjustment
+- Manual adjustment mode when you pan
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:535-546`
+
+### Grid Reset
+
+Return to automatic "best fit" view:
+
+- Resets zoom to show all graphed equations
+- Centers graph optimally
+- Returns to automatic adjustment mode
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:849-869`
+
+## Active Tracing
+
+Explore your graphs with interactive tracing:
+
+### Trace Mode
+
+1. Click the "Active Tracing" button
+2. A cursor appears on the graph
+3. Use arrow keys to move along the curve
+4. Coordinate values display in real-time
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:597-633`
+
+### Trace Features
+
+- **Coordinate Display** - Shows (x, y) values as you trace
+- **Multi-Curve Support** - Trace different equations
+- **Keyboard Control** - Arrow keys for precise movement
+- **Visual Cursor** - Cross-hair pointer with shadow effect
+- **Popup Values** - Floating coordinate display follows cursor
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:363-395`
+
+### Exiting Trace Mode
+
+- Press Escape key
+- Click Active Tracing button again
+- Graph loses focus
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:635-643`
+
+## Key Graph Features
+
+Automatically analyze equations to find important points:
+
+### Analyzed Features
+
+- **Zeros/Roots** - Where the function crosses the x-axis
+- **Y-Intercept** - Where the function crosses the y-axis
+- **Minima** - Local minimum points
+- **Maxima** - Local maximum points
+- **Inflection Points** - Where concavity changes
+
+### Feature Panel
+
+Click "Analyze" on any equation to:
+
+- View list of key features
+- See exact coordinate values
+- Navigate between features
+- Close and return to equation editing
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:553-569`
+
+<Info>
+  Key graph features are calculated within the visible graph range.
+</Info>
+
+## Graph Settings
+
+Customize the graph appearance and behavior:
+
+### Available Settings
+
+- **X-axis range** - Set custom min/max values
+- **Y-axis range** - Set custom min/max values
+- **Theme** - Match app theme or always use light theme
+- **Grid lines** - Show/hide grid
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:656-703`
+
+### Theme Options
+
+- **Match App Theme** - Graph colors follow Windows Calculator theme
+- **Always Light** - Graph always uses light background
+- **High Contrast** - Automatically adapts to high contrast mode
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:756-772`
+
+## Share Functionality
+
+Share your graphs with others:
+
+### Share Content
+
+- Graph image (PNG format, 600px width)
+- All plotted equations with color indicators
+- Variable definitions and values
+- HTML-formatted for rich display
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:399-500`
+
+### Copy Graph
+
+Right-click the graph to:
+
+- Copy graph image to clipboard
+- Paste into other applications
+- Use in documents and presentations
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:832-842`
+
+## Responsive Design
+
+The graphing calculator adapts to different window sizes:
+
+### Small State (Narrow Window)
+
+- Toggle between equation and graph panels
+- Full-width equation input
+- Full-width graph display
+- Toggle button to switch views
+
+### Large State (Wide Window)
+
+- Side-by-side equation and graph panels
+- Simultaneous editing and visualization
+- More equations visible at once
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:216-219`
+
+## Accessibility Features
+
+### Screen Reader Support
+
+- Automatic announcements for graph changes
+- Named regions for all controls
+- Descriptive automation names
+- Live region updates for tracing values
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:720-742`
+
+### Keyboard Navigation
+
+- Full keyboard support for all features
+- Keyboard shortcuts for zoom
+- Tab navigation through equations
+- Arrow keys for tracing
+
+### High Contrast Mode
+
+- Automatic detection and adaptation
+- Cursor shadow hidden in high contrast
+- Optimized color schemes
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:814-822`
+
+## Graph Automation
+
+The graph control provides detailed automation information:
+
+- Current axis ranges (x-min, x-max, y-min, y-max)
+- Number of equations plotted
+- Localized descriptions for screen readers
+
+**Source Reference:** `src/Calculator/Views/GraphingCalculator/GraphingCalculator.xaml.cs:720-742`
+
+## Common Use Cases
+
+- **Education** - Visualizing mathematical concepts
+- **Homework** - Solving and verifying equations
+- **Function analysis** - Finding maxima, minima, and roots
+- **Comparison** - Plotting multiple functions to compare behavior
+- **Presentations** - Creating graphs for reports and presentations
+
+## Related Features
+
+- [Scientific Calculator](/features/scientific-calculator) - Advanced mathematical functions
+- [Standard Calculator](/features/standard-calculator) - Basic calculations

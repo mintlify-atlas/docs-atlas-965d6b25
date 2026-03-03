@@ -1,0 +1,462 @@
+---
+title: "CalculatorManager"
+description: "Main calculator management class that coordinates calculation engines, memory, and display callbacks"
+---
+
+## Overview
+
+The `CalculatorManager` class is the primary interface for interacting with the Windows Calculator calculation engine. It manages multiple calculator modes (Standard, Scientific, Programmer), memory operations, history, and display callbacks.
+
+## Constructor
+
+<ParamField path="displayCallback" type="ICalcDisplay*" required>
+  Callback interface for display updates and notifications
+</ParamField>
+
+<ParamField path="resourceProvider" type="IResourceProvider*" required>
+  Provider for localized strings and resources
+</ParamField>
+
+```cpp
+CalculatorManager(
+    _In_ ICalcDisplay* displayCallback,
+    _In_ IResourceProvider* resourceProvider
+);
+```
+
+### Example
+
+```cpp
+#include "CalculatorManager.h"
+
+using namespace CalculationManager;
+
+class MyDisplay : public ICalcDisplay {
+    // Implement ICalcDisplay interface methods
+};
+
+MyDisplay* display = new MyDisplay();
+IResourceProvider* resources = GetResourceProvider();
+
+CalculatorManager* manager = new CalculatorManager(display, resources);
+manager->SetStandardMode();
+```
+
+## Calculator Modes
+
+### SetStandardMode()
+
+Switches to Standard calculator mode with basic arithmetic operations.
+
+```cpp
+void SetStandardMode();
+```
+
+**Details:**
+- Sets precision to 16 digits (StandardModePrecision)
+- Disables order of operations precedence
+- Resets to decimal radix
+- Uses standard history
+
+### SetScientificMode()
+
+Switches to Scientific calculator mode with advanced mathematical functions.
+
+```cpp
+void SetScientificMode();
+```
+
+**Details:**
+- Sets precision to 32 digits (ScientificModePrecision)
+- Enables order of operations precedence
+- Supports trigonometric, logarithmic, and exponential functions
+- Uses scientific history
+
+### SetProgrammerMode()
+
+Switches to Programmer calculator mode with bitwise operations and multiple bases.
+
+```cpp
+void SetProgrammerMode();
+```
+
+**Details:**
+- Sets precision to 64 bits (ProgrammerModePrecision)
+- Enables integer-only mode
+- Supports Hex, Decimal, Octal, and Binary radix
+- Disables history
+
+## Command Processing
+
+### SendCommand()
+
+Sends a command to the calculator engine for processing.
+
+<ParamField path="command" type="Command" required>
+  The command to execute (arithmetic operation, function, mode change, etc.)
+</ParamField>
+
+```cpp
+void SendCommand(_In_ Command command);
+```
+
+### Example
+
+```cpp
+manager->SendCommand(Command::Command5);
+manager->SendCommand(Command::CommandADD);
+manager->SendCommand(Command::Command3);
+manager->SendCommand(Command::CommandEQU);  // Result: 8
+```
+
+## Memory Operations
+
+### MemorizeNumber()
+
+Stores the current displayed value in memory.
+
+```cpp
+void MemorizeNumber();
+```
+
+**Behavior:**
+- Inserts value at the beginning of the memory list
+- Maximum memory size is 100 items
+- Ignored if calculator is in error state
+
+### MemorizedNumberLoad()
+
+Recalls a memorized number to the primary display.
+
+<ParamField path="indexOfMemory" type="unsigned int" required>
+  Zero-based index of the memory item to recall
+</ParamField>
+
+```cpp
+void MemorizedNumberLoad(_In_ unsigned int indexOfMemory);
+```
+
+### MemorizedNumberAdd()
+
+Adds the current display value to a memorized number.
+
+<ParamField path="indexOfMemory" type="unsigned int" required>
+  Zero-based index of the memory item to modify
+</ParamField>
+
+```cpp
+void MemorizedNumberAdd(_In_ unsigned int indexOfMemory);
+```
+
+**Behavior:**
+- If memory is empty, creates new memory item with current value
+- Notifies display callback of memory change
+
+### MemorizedNumberSubtract()
+
+Subtracts the current display value from a memorized number.
+
+<ParamField path="indexOfMemory" type="unsigned int" required>
+  Zero-based index of the memory item to modify
+</ParamField>
+
+```cpp
+void MemorizedNumberSubtract(_In_ unsigned int indexOfMemory);
+```
+
+### MemorizedNumberClear()
+
+Removes a specific memory item.
+
+<ParamField path="indexOfMemory" type="unsigned int" required>
+  Zero-based index of the memory item to remove
+</ParamField>
+
+```cpp
+void MemorizedNumberClear(_In_ unsigned int indexOfMemory);
+```
+
+### MemorizedNumberClearAll()
+
+Clears all memorized numbers.
+
+```cpp
+void MemorizedNumberClearAll();
+```
+
+## History Management
+
+### GetHistoryItems()
+
+Retrieves history items for the current mode.
+
+<ResponseField name="return" type="std::vector<std::shared_ptr<HISTORYITEM>> const&">
+  Reference to vector of history items
+</ResponseField>
+
+```cpp
+std::vector<std::shared_ptr<HISTORYITEM>> const& GetHistoryItems() const;
+```
+
+### GetHistoryItems(mode)
+
+Retrieves history items for a specific calculator mode.
+
+<ParamField path="mode" type="CalculatorMode" required>
+  The calculator mode (Standard or Scientific)
+</ParamField>
+
+```cpp
+std::vector<std::shared_ptr<HISTORYITEM>> const& GetHistoryItems(
+    _In_ CalculatorMode mode
+) const;
+```
+
+### SetHistoryItems()
+
+Restores history items (used for persistence).
+
+<ParamField path="historyItems" type="std::vector<std::shared_ptr<HISTORYITEM>> const&" required>
+  Vector of history items to restore
+</ParamField>
+
+```cpp
+void SetHistoryItems(
+    _In_ std::vector<std::shared_ptr<HISTORYITEM>> const& historyItems
+);
+```
+
+### GetHistoryItem()
+
+Retrieves a specific history item by index.
+
+<ParamField path="uIdx" type="unsigned int" required>
+  Zero-based index of the history item
+</ParamField>
+
+```cpp
+std::shared_ptr<HISTORYITEM> const& GetHistoryItem(_In_ unsigned int uIdx);
+```
+
+### RemoveHistoryItem()
+
+Removes a history item by index.
+
+<ParamField path="uIdx" type="unsigned int" required>
+  Zero-based index of the history item to remove
+</ParamField>
+
+<ResponseField name="return" type="bool">
+  True if item was removed, false otherwise
+</ResponseField>
+
+```cpp
+bool RemoveHistoryItem(_In_ unsigned int uIdx);
+```
+
+### ClearHistory()
+
+Clears all history for the current mode.
+
+```cpp
+void ClearHistory();
+```
+
+### MaxHistorySize()
+
+Returns the maximum number of history items (20).
+
+```cpp
+size_t MaxHistorySize() const;
+```
+
+## Utility Methods
+
+### Reset()
+
+Resets the calculator to initial state.
+
+<ParamField path="clearMemory" type="bool" default="true">
+  Whether to clear memorized numbers
+</ParamField>
+
+```cpp
+void Reset(bool clearMemory = true);
+```
+
+**Behavior:**
+- Switches to Standard mode
+- Sets degree mode (if in Scientific)
+- Clears all entries
+- Disables exponential format
+- Optionally clears memory
+
+### IsEngineRecording()
+
+Checks if the engine is recording input (building an expression).
+
+```cpp
+bool IsEngineRecording();
+```
+
+### IsInputEmpty()
+
+Checks if the current input is empty.
+
+```cpp
+bool IsInputEmpty();
+```
+
+### SetRadix()
+
+Sets the number base for Programmer mode.
+
+<ParamField path="iRadixType" type="RadixType" required>
+  Radix type: Hex, Decimal, Octal, or Binary
+</ParamField>
+
+```cpp
+void SetRadix(RadixType iRadixType);
+```
+
+### GetResultForRadix()
+
+Gets the current result formatted in a specific radix.
+
+<ParamField path="radix" type="uint32_t" required>
+  The radix (2, 8, 10, or 16)
+</ParamField>
+
+<ParamField path="precision" type="int32_t" required>
+  Number of digits of precision
+</ParamField>
+
+<ParamField path="groupDigitsPerRadix" type="bool" required>
+  Whether to group digits with separators
+</ParamField>
+
+```cpp
+std::wstring GetResultForRadix(
+    uint32_t radix,
+    int32_t precision,
+    bool groupDigitsPerRadix
+);
+```
+
+### SetPrecision()
+
+Changes the calculation precision.
+
+<ParamField path="precision" type="int32_t" required>
+  Number of digits of precision
+</ParamField>
+
+```cpp
+void SetPrecision(int32_t precision);
+```
+
+### DecimalSeparator()
+
+Gets the decimal separator character for the current locale.
+
+```cpp
+wchar_t DecimalSeparator();
+```
+
+### GetCurrentDegreeMode()
+
+Returns the current angle mode for trigonometric functions.
+
+<ResponseField name="return" type="Command">
+  CommandDEG, CommandRAD, or CommandGRAD
+</ResponseField>
+
+```cpp
+Command GetCurrentDegreeMode();
+```
+
+### GetDisplayCommandsSnapshot()
+
+Gets a snapshot of the current expression commands for display.
+
+```cpp
+std::vector<std::shared_ptr<IExpressionCommand>> GetDisplayCommandsSnapshot() const;
+```
+
+## Enumerations
+
+### CalculatorMode
+
+Defines the calculator modes.
+
+```cpp
+enum class CalculatorMode {
+    Standard = 0,
+    Scientific
+};
+```
+
+### MemoryCommand
+
+Commands for memory operations.
+
+```cpp
+enum class MemoryCommand {
+    MemorizeNumber = 330,
+    MemorizedNumberLoad = 331,
+    MemorizedNumberAdd = 332,
+    MemorizedNumberSubtract = 333,
+    MemorizedNumberClearAll = 334,
+    MemorizedNumberClear = 335
+};
+```
+
+### CalculatorPrecision
+
+Default precision values for each mode.
+
+```cpp
+enum class CalculatorPrecision {
+    StandardModePrecision = 16,
+    ScientificModePrecision = 32,
+    ProgrammerModePrecision = 64
+};
+```
+
+## ICalcDisplay Interface
+
+Callbacks that must be implemented by the display:
+
+```cpp
+class ICalcDisplay {
+public:
+    virtual void SetPrimaryDisplay(
+        _In_ const std::wstring& displayString,
+        _In_ bool isError
+    ) = 0;
+
+    virtual void SetIsInError(bool isError) = 0;
+
+    virtual void SetExpressionDisplay(
+        _Inout_ std::shared_ptr<std::vector<std::pair<std::wstring, int>>> const& tokens,
+        _Inout_ std::shared_ptr<std::vector<std::shared_ptr<IExpressionCommand>>> const& commands
+    ) = 0;
+
+    virtual void SetMemorizedNumbers(
+        _In_ const std::vector<std::wstring>& memorizedNumbers
+    ) = 0;
+
+    virtual void OnHistoryItemAdded(_In_ unsigned int addedItemIndex) = 0;
+    virtual void SetParenthesisNumber(_In_ unsigned int parenthesisCount) = 0;
+    virtual void OnNoRightParenAdded() = 0;
+    virtual void MaxDigitsReached() = 0;
+    virtual void BinaryOperatorReceived() = 0;
+    virtual void MemoryItemChanged(unsigned int indexOfMemory) = 0;
+    virtual void InputChanged() = 0;
+};
+```
+
+## See Also
+
+- [CCalcEngine](/api/calc-engine) - Core calculation engine
+- [RatPack](/api/ratpack) - Infinite precision arithmetic

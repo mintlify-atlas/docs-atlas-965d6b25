@@ -1,0 +1,246 @@
+---
+title: Building the Project
+description: Learn how to build Windows Calculator from source using Visual Studio
+---
+
+This guide walks you through building Windows Calculator from source code using Visual Studio and MSBuild.
+
+## Prerequisites
+
+Before you can build Calculator, ensure your development environment meets these requirements:
+
+<Note>
+  Your computer must be running **Windows 11, build 22000 or newer** to build and run Calculator.
+</Note>
+
+<Steps>
+  <Step title="Install Visual Studio">
+    Download and install the latest version of [Visual Studio](https://developer.microsoft.com/en-us/windows/downloads). The free Community edition is sufficient.
+
+    During installation, make sure to install:
+    - **Universal Windows Platform Development** workload
+    - **C++ Universal Windows Platform tools** component (optional)
+    - Latest **Windows 11 SDK**
+
+    ![Visual Studio Installation](../source/docs/Images/VSInstallationScreenshot.png)
+  </Step>
+
+  <Step title="Install XAML Styler Extension">
+    Install the [XAML Styler](https://marketplace.visualstudio.com/items?itemName=TeamXavalon.XAMLStyler) Visual Studio extension for consistent XAML formatting.
+  </Step>
+
+  <Step title="Clone the Repository">
+    Get the Calculator source code from GitHub:
+
+    ```bash
+    git clone https://github.com/Microsoft/calculator.git
+    cd calculator
+    ```
+  </Step>
+</Steps>
+
+## Building with Visual Studio
+
+The simplest way to build Calculator is using the Visual Studio IDE:
+
+<Steps>
+  <Step title="Open the Solution">
+    Open `src/Calculator.sln` in Visual Studio.
+  </Step>
+
+  <Step title="Select Platform and Configuration">
+    Choose your target platform from the toolbar:
+    - **x64** - For 64-bit Intel/AMD processors
+    - **x86** - For 32-bit Intel/AMD processors  
+    - **ARM64** - For ARM-based devices
+
+    Select the build configuration:
+    - **Debug** - For development with debugging symbols
+    - **Release** - For optimized production builds
+  </Step>
+
+  <Step title="Build the Solution">
+    Press **F7** or select **Build > Build Solution** from the menu.
+
+    The build output will appear in the Output window. A successful build will show:
+    ```
+    ========== Build: 11 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+    ```
+  </Step>
+
+  <Step title="Run Calculator">
+    Press **F5** to build and run Calculator with the debugger attached, or **Ctrl+F5** to run without debugging.
+  </Step>
+</Steps>
+
+## Building with MSBuild
+
+For command-line builds or CI/CD pipelines, use MSBuild directly:
+
+<Steps>
+  <Step title="Restore NuGet Packages">
+    ```powershell
+    nuget restore ./src/Calculator.sln
+    ```
+  </Step>
+
+  <Step title="Build with MSBuild">
+    <CodeGroup>
+    ```powershell Release Build
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Release `
+      -maxCpuCount
+    ```
+
+    ```powershell Debug Build
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Debug `
+      -maxCpuCount
+    ```
+
+    ```powershell Build All Platforms
+    # Build for x64, x86, and ARM64
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Release `
+      -maxCpuCount
+
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x86 `
+      -p:Configuration=Release `
+      -maxCpuCount
+
+    msbuild ./src/Calculator.sln `
+      -p:Platform=ARM64 `
+      -p:Configuration=Release `
+      -maxCpuCount
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Publish the Application">
+    To create a deployment package:
+
+    ```powershell
+    msbuild ./src/Calculator.sln `
+      -p:Platform=x64 `
+      -p:Configuration=Release `
+      -p:GenerateProjectSpecificOutputFolder=true `
+      -maxCpuCount `
+      -t:Publish `
+      -p:PublishDir=./output/publish/
+    ```
+  </Step>
+</Steps>
+
+## Solution Structure
+
+The Calculator solution contains multiple projects:
+
+| Project | Type | Description |
+|---------|------|-------------|
+| **Calculator** | C# UWP App | Main application UI and entry point |
+| **CalcManager** | C++ Library | Core calculation engine |
+| **CalcViewModel** | C++ Library | View models for MVVM pattern |
+| **GraphControl** | C++ Library | Graphing calculator controls |
+| **GraphingImpl** | C++ Library | Mock graphing engine implementation |
+| **CalculatorUnitTests** | C++ Test | Unit tests for core components |
+| **CalculatorUITests** | C# Test | UI automation tests |
+| **CalculatorUITestFramework** | C# Library | Test framework and utilities |
+
+## Platform Support
+
+Calculator supports three platforms:
+
+<CodeGroup>
+```text x64
+Debug|x64
+Release|x64
+```
+
+```text x86  
+Debug|x86
+Release|x86
+```
+
+```text ARM64
+Debug|ARM64
+Release|ARM64
+```
+</CodeGroup>
+
+## Build Configurations
+
+### Debug Configuration
+
+- Includes debugging symbols
+- Minimal optimization
+- Assertions enabled
+- Diagnostic data **disabled** by default
+
+### Release Configuration
+
+- Full optimization
+- No debugging symbols
+- Assertions disabled
+- Diagnostic data **disabled** in developer builds
+
+<Note>
+  Diagnostic data collection can be enabled with the `SEND_DIAGNOSTICS` build flag, but is disabled by default in development builds.
+</Note>
+
+## Continuous Integration
+
+The Calculator project uses GitHub Actions for CI/CD. The workflow:
+
+1. **Defines builds** - Determines which platforms to build based on PR vs. main branch
+2. **Builds** - Compiles for x64, x86, and ARM64 (x64 only for PRs)
+3. **Runs unit tests** - Executes CalculatorUnitTests on x64 and x86
+4. **Runs UI tests** - Executes CalculatorUITests on x64
+
+View the [CI workflow configuration](https://github.com/Microsoft/calculator/blob/main/.github/workflows/action-ci.yml) for details.
+
+## Troubleshooting
+
+### Build Errors
+
+**Missing Windows SDK**
+```
+Error: Windows SDK version not found
+```
+Install the latest Windows 11 SDK through Visual Studio Installer.
+
+**NuGet restore failed**
+```
+Error: Unable to find package
+```
+Ensure you have internet connectivity and run:
+```powershell
+nuget restore ./src/Calculator.sln -Force
+```
+
+**Platform toolset not found**
+```
+Error: The build tools for v143 cannot be found
+```
+Install the "C++ Universal Windows Platform tools" component in Visual Studio.
+
+### Performance Tips
+
+- Use `-maxCpuCount` with MSBuild to enable parallel compilation
+- Build only the platform you need during development (typically x64)
+- Use incremental builds when making small changes
+- Consider using a RAM disk for faster builds on systems with sufficient memory
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Running Tests" icon="flask" href="/development/testing">
+    Learn how to run unit tests and UI tests
+  </Card>
+  <Card title="Debugging" icon="bug" href="/development/debugging">
+    Set up debugging tools and techniques
+  </Card>
+</CardGroup>

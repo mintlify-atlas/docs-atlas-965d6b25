@@ -1,0 +1,482 @@
+---
+title: StandardCalculatorViewModel
+description: ViewModel for Standard, Scientific, and Programmer calculator modes with expression handling, memory management, and number base conversions
+---
+
+## Overview
+
+The `StandardCalculatorViewModel` class manages calculator operations for Standard, Scientific, and Programmer modes. It handles expression evaluation, memory operations, number base conversions, and provides data binding for UI elements.
+
+**Namespace:** `CalculatorApp.ViewModel`
+
+**Implements:** `Windows::UI::Xaml::Data::INotifyPropertyChanged`
+
+**Declared in:** `StandardCalculatorViewModel.h:40`
+
+## Observable Properties
+
+The ViewModel uses property macros for automatic change notification. Properties are defined using:
+- `OBSERVABLE_PROPERTY_RW(type, name)` - Read-write with change notification
+- `OBSERVABLE_PROPERTY_R(type, name)` - Read-only with private setter
+- `OBSERVABLE_NAMED_PROPERTY_R(type, name)` - Read-only with static property name
+
+### Display Properties
+
+#### DisplayValue
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, DisplayValue);
+```
+
+The primary display value shown to the user.
+
+#### ExpressionTokens
+
+```cpp
+OBSERVABLE_PROPERTY_R(
+    Windows::Foundation::Collections::IObservableVector<Common::DisplayExpressionToken^>^,
+    ExpressionTokens
+);
+```
+
+Collection of tokens representing the current expression.
+
+#### IsInError
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_R(bool, IsInError);
+```
+
+Indicates whether the calculator is in an error state (e.g., division by zero).
+
+#### OpenParenthesisCount
+
+```cpp
+OBSERVABLE_PROPERTY_R(unsigned int, OpenParenthesisCount);
+```
+
+Number of unclosed opening parentheses in the current expression.
+
+### Programmer Mode Properties
+
+#### DecimalDisplayValue
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, DecimalDisplayValue);
+```
+
+Display value in decimal (base 10) format.
+
+#### HexDisplayValue
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, HexDisplayValue);
+```
+
+Display value in hexadecimal (base 16) format.
+
+#### OctalDisplayValue
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, OctalDisplayValue);
+```
+
+Display value in octal (base 8) format.
+
+#### BinaryDisplayValue
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_R(Platform::String^, BinaryDisplayValue);
+```
+
+Display value in binary (base 2) format.
+
+#### BinaryDigits
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_R(
+    Windows::Foundation::Collections::IVector<bool>^,
+    BinaryDigits
+);
+```
+
+Collection of individual binary digits for bit-flip operations.
+
+#### CurrentRadixType
+
+```cpp
+OBSERVABLE_PROPERTY_R(CalculatorApp::ViewModel::Common::NumberBase, CurrentRadixType);
+```
+
+Current number base (Decimal, Hexadecimal, Octal, or Binary).
+
+#### IsBinaryBitFlippingEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, IsBinaryBitFlippingEnabled);
+```
+
+Indicates whether bit-flipping mode is active in Programmer mode.
+
+#### AreProgrammerRadixOperatorsVisible
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, AreProgrammerRadixOperatorsVisible);
+```
+
+Controls visibility of radix operators (AND, OR, XOR, etc.) in Programmer mode.
+
+### Button State Properties
+
+#### IsBinaryOperatorEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, IsBinaryOperatorEnabled);
+```
+
+Enables/disables binary operators (+, -, *, /, etc.).
+
+#### IsUnaryOperatorEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, IsUnaryOperatorEnabled);
+```
+
+Enables/disables unary operators (sin, cos, sqrt, etc.).
+
+#### IsNegateEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, IsNegateEnabled);
+```
+
+Enables/disables the negate (+/-) button.
+
+#### IsDecimalEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsDecimalEnabled);
+```
+
+Enables/disables the decimal point button.
+
+#### AreHEXButtonsEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, AreHEXButtonsEnabled);
+```
+
+Enables/disables hexadecimal letter buttons (A-F) in Programmer mode.
+
+### Memory Properties
+
+#### MemorizedNumbers
+
+```cpp
+OBSERVABLE_PROPERTY_R(
+    Windows::Foundation::Collections::IVector<MemoryItemViewModel^>^,
+    MemorizedNumbers
+);
+```
+
+Collection of values stored in memory.
+
+#### IsMemoryEmpty
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_RW(bool, IsMemoryEmpty);
+```
+
+Indicates whether memory is empty.
+
+### History
+
+#### HistoryVM
+
+```cpp
+OBSERVABLE_PROPERTY_R(HistoryViewModel^, HistoryVM);
+```
+
+ViewModel for calculation history.
+
+### Accessibility Properties
+
+#### CalculationResultAutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, CalculationResultAutomationName);
+```
+
+Automation/narrator text for the calculation result.
+
+#### CalculationExpressionAutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, CalculationExpressionAutomationName);
+```
+
+Automation/narrator text for the expression.
+
+#### Announcement
+
+```cpp
+OBSERVABLE_PROPERTY_R(
+    CalculatorApp::ViewModel::Common::Automation::NarratorAnnouncement^,
+    Announcement
+);
+```
+
+Narrator announcements for screen reader accessibility.
+
+### Mode Properties
+
+These properties determine the active calculator mode:
+
+```cpp
+property bool IsStandard { bool get(); void set(bool value); }
+property bool IsScientific { bool get(); void set(bool value); }
+property bool IsProgrammer { bool get(); void set(bool value); }
+```
+
+Setting one to `true` automatically sets the others to `false`.
+
+#### IsBitFlipChecked
+
+```cpp
+property bool IsBitFlipChecked { bool get(); void set(bool value); }
+```
+
+Toggles bit-flipping mode in Programmer calculator.
+
+#### ValueBitLength
+
+```cpp
+property CalculatorApp::ViewModel::Common::BitLength ValueBitLength {
+    CalculatorApp::ViewModel::Common::BitLength get();
+    void set(CalculatorApp::ViewModel::Common::BitLength value);
+}
+```
+
+Sets the bit length for Programmer mode (QWORD, DWORD, WORD, BYTE).
+
+### Always-on-Top
+
+#### IsAlwaysOnTop
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsAlwaysOnTop);
+```
+
+Indicates whether the calculator is in Always-on-Top mode.
+
+## Commands
+
+Commands are defined using the `COMMAND_FOR_METHOD` macro:
+
+### ButtonPressed
+
+```cpp
+COMMAND_FOR_METHOD(ButtonPressed, StandardCalculatorViewModel::OnButtonPressed);
+```
+
+Handles all calculator button presses.
+
+**Parameter:** `Platform::Object^` - Button identifier
+
+### CopyCommand
+
+```cpp
+COMMAND_FOR_METHOD(CopyCommand, StandardCalculatorViewModel::OnCopyCommand);
+```
+
+Copies the current result to the clipboard.
+
+### PasteCommand
+
+```cpp
+COMMAND_FOR_METHOD(PasteCommand, StandardCalculatorViewModel::OnPasteCommand);
+```
+
+Pastes from the clipboard into the calculator.
+
+### Memory Commands
+
+```cpp
+COMMAND_FOR_METHOD(MemoryAdd, StandardCalculatorViewModel::OnMemoryAdd);
+COMMAND_FOR_METHOD(MemorySubtract, StandardCalculatorViewModel::OnMemorySubtract);
+COMMAND_FOR_METHOD(MemoryItemPressed, StandardCalculatorViewModel::OnMemoryItemPressed);
+COMMAND_FOR_METHOD(ClearMemoryCommand, StandardCalculatorViewModel::OnClearMemoryCommand);
+```
+
+Handle memory operations (M+, M-, memory recall, memory clear).
+
+## Key Methods
+
+### SetCalculatorType
+
+```cpp
+void SetCalculatorType(CalculatorApp::ViewModel::Common::ViewMode targetState);
+```
+
+Switches between Standard, Scientific, and Programmer modes.
+
+### UpdateOperand
+
+```cpp
+void UpdateOperand(int pos, Platform::String^ text);
+```
+
+Updates the operand at the specified position.
+
+### SwitchProgrammerModeBase
+
+```cpp
+void SwitchProgrammerModeBase(CalculatorApp::ViewModel::Common::NumberBase calculatorBase);
+```
+
+Switches between number bases in Programmer mode (DEC, HEX, OCT, BIN).
+
+### FtoEButtonToggled
+
+```cpp
+void FtoEButtonToggled();
+```
+
+Toggles scientific notation (F-E) mode.
+
+### OnPaste
+
+```cpp
+void OnPaste(Platform::String^ pastedString);
+```
+
+Processes pasted text as calculator input.
+
+### SelectHistoryItem
+
+```cpp
+void SelectHistoryItem(HistoryItemViewModel^ item);
+```
+
+Loads a calculation from history.
+
+### SetPrecision
+
+```cpp
+void SetPrecision(int32_t precision);
+```
+
+Sets the display precision for decimal values.
+
+## Property Macro Usage Examples
+
+### Read-Write Observable Property
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, DisplayValue);
+```
+
+Expands to:
+```cpp
+property Platform::String^ DisplayValue
+{
+    Platform::String^ get() { return m_DisplayValue; }
+    void set(Platform::String^ value)
+    {
+        if (m_DisplayValue != value)
+        {
+            m_DisplayValue = value;
+            RaisePropertyChanged(L"DisplayValue");
+        }
+    }
+}
+private:
+    Platform::String^ m_DisplayValue;
+public:
+```
+
+### Read-Only Observable Property
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, IsInError);
+```
+
+Expands to a public getter with a private setter that raises property changed events.
+
+### Command Definition
+
+```cpp
+COMMAND_FOR_METHOD(ButtonPressed, StandardCalculatorViewModel::OnButtonPressed);
+```
+
+Expands to:
+```cpp
+property Windows::UI::Xaml::Input::ICommand^ ButtonPressed
+{
+    Windows::UI::Xaml::Input::ICommand^ get()
+    {
+        if (!donotuse_ButtonPressed)
+        {
+            donotuse_ButtonPressed = ref new DelegateCommand(
+                MakeDelegateCommandHandler(this, &StandardCalculatorViewModel::OnButtonPressed)
+            );
+        }
+        return donotuse_ButtonPressed;
+    }
+}
+```
+
+## INotifyPropertyChanged Implementation
+
+The ViewModel uses the `OBSERVABLE_OBJECT_CALLBACK` macro:
+
+```cpp
+OBSERVABLE_OBJECT_CALLBACK(OnPropertyChanged);
+```
+
+This generates:
+```cpp
+virtual event Windows::UI::Xaml::Data::PropertyChangedEventHandler^ PropertyChanged;
+internal:
+void RaisePropertyChanged(Platform::String^ p)
+{
+    PropertyChanged(this, ref new Windows::UI::Xaml::Data::PropertyChangedEventArgs(p));
+    OnPropertyChanged(p);
+}
+```
+
+The `OnPropertyChanged` callback is invoked for every property change, allowing custom logic.
+
+## Usage Example
+
+```cpp
+// Create calculator ViewModel
+auto calcVM = ref new StandardCalculatorViewModel();
+
+// Set to Scientific mode
+calcVM->IsScientific = true;
+
+// Simulate button press
+calcVM->ButtonPressed->Execute(NumbersAndOperatorsEnum::Num5);
+
+// Copy result
+calcVM->CopyCommand->Execute(nullptr);
+
+// Access display value
+Platform::String^ result = calcVM->DisplayValue;
+
+// Programmer mode example
+calcVM->IsProgrammer = true;
+calcVM->SwitchProgrammerModeBase(NumberBase::HexBase);
+Platform::String^ hexValue = calcVM->HexDisplayValue;
+
+// Enable bit flipping
+calcVM->IsBitFlipChecked = true;
+auto binaryDigits = calcVM->BinaryDigits;
+```
+
+## See Also
+
+- [ApplicationViewModel](/api/application-viewmodel) - Application-level state management
+- [HistoryViewModel](https://github.com/microsoft/calculator/blob/main/src/CalcViewModel/HistoryViewModel.h) - Calculation history
+- [MemoryItemViewModel](https://github.com/microsoft/calculator/blob/main/src/CalcViewModel/MemoryItemViewModel.h) - Memory items

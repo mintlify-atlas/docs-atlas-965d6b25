@@ -1,0 +1,318 @@
+---
+title: History and Memory
+description: Calculation history tracking and memory storage capabilities
+---
+
+Windows Calculator provides powerful history tracking and memory storage features to help you keep track of calculations and reuse values.
+
+## Overview
+
+History and Memory are two distinct but related features that help you manage calculations:
+
+- **History** - Automatically tracks all your calculations
+- **Memory** - Manually store values for later use
+
+Both features are available in Standard and Scientific calculator modes.
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:178-190`
+
+## History Features
+
+<CardGroup cols={2}>
+  <Card title="Automatic Tracking" icon="clock-rotate-left">
+    Every calculation is automatically saved to history
+  </Card>
+  <Card title="Expression & Result" icon="equals">
+    See both the expression and the calculated result
+  </Card>
+  <Card title="Reuse Calculations" icon="arrow-rotate-left">
+    Click any history item to load it back
+  </Card>
+  <Card title="Clear History" icon="trash">
+    Remove individual items or clear all history
+  </Card>
+</CardGroup>
+
+### History Display
+
+Each history item shows:
+
+- **Expression** - The original calculation (e.g., "5 + 3")
+- **Result** - The calculated answer
+- **Timestamp** - When the calculation was performed (in session)
+
+History items are displayed in reverse chronological order (newest first).
+
+**Source Reference:** `src/CalcViewModel/HistoryViewModel.h:25-38`
+
+### Accessing History
+
+History can be accessed in two ways:
+
+#### Flyout Panel (Compact View)
+
+- Click the History button
+- History appears as an overlay
+- Doesn't interfere with calculator layout
+- Available when window is narrow
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:704-721`
+
+#### Docked Panel (Wide View)
+
+- History panel docked to the side
+- Visible alongside calculator
+- Automatically shown in wide windows
+- Can be switched with Memory panel
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:342-361`
+
+### History Operations
+
+#### Reuse a Calculation
+
+1. Click any history item
+2. The expression loads into the calculator
+3. Result is recalculated
+4. Continue calculating from that point
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:696-702`
+
+#### Delete History Items
+
+- Delete individual items with the delete button
+- Clear all history with "Clear history" button
+- Confirmation for clear all operation
+
+**Source Reference:** `src/CalcViewModel/HistoryViewModel.h:44-45`
+
+### History Management
+
+History is managed intelligently:
+
+- **Persistent** - History is saved between sessions
+- **Mode-specific** - Each calculator mode has its own history
+- **Reload on mode change** - History reloads when switching modes
+- **Maximum size limit** - Prevents unlimited growth
+
+**Source Reference:** `src/CalcViewModel/HistoryViewModel.h:52`
+
+## Memory Features
+
+<CardGroup cols={2}>
+  <Card title="Multiple Slots" icon="layer-group">
+    Store multiple values simultaneously
+  </Card>
+  <Card title="Memory Arithmetic" icon="plus-minus">
+    Add or subtract from stored values
+  </Card>
+  <Card title="Recall Values" icon="download">
+    Load any stored value back to calculator
+  </Card>
+  <Card title="Clear Memory" icon="eraser">
+    Remove individual values or clear all
+  </Card>
+</CardGroup>
+
+### Memory Operations
+
+#### Store (MS)
+
+Store the current display value to memory:
+
+- Creates a new memory slot
+- Value appears in memory list
+- Multiple values can be stored
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:307-340`
+
+#### Recall (MR)
+
+Load a memory value to the display:
+
+- Click any memory item to recall it
+- Value loads into calculator
+- Memory value remains stored
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:313-319`
+
+#### Memory Add (M+)
+
+Add current display to a memory value:
+
+1. Select a memory item
+2. Click M+ or use context menu
+3. Current value is added to stored value
+4. Memory updates with new sum
+
+**Source Reference:** `src/Calculator/Views/Memory.xaml.cs:69-76`
+
+#### Memory Subtract (M-)
+
+Subtract current display from a memory value:
+
+1. Select a memory item
+2. Click M- or use context menu
+3. Current value is subtracted from stored value
+4. Memory updates with new difference
+
+**Source Reference:** `src/Calculator/Views/Memory.xaml.cs:78-85`
+
+#### Clear Memory (MC)
+
+Remove memory values:
+
+- **Clear individual** - Right-click and select "Clear"
+- **Clear all** - Click MC button to clear all memory
+
+**Source Reference:** `src/Calculator/Views/Memory.xaml.cs:60-67`
+
+### Memory Display
+
+Memory panel shows:
+
+- **Value** - The stored number
+- **Position** - Memory slot number (M1, M2, etc.)
+- **Context menu** - Right-click for operations
+
+Memory values are displayed in order of creation (oldest first).
+
+**Source Reference:** `src/Calculator/Views/Memory.xaml.cs:48-58`
+
+### Memory Context Menu
+
+Right-click any memory item to:
+
+- **M+** - Add current value
+- **M-** - Subtract current value
+- **Clear** - Remove this memory slot
+
+**Source Reference:** `src/Calculator/Views/Memory.xaml.cs:60-91`
+
+## Panel Management
+
+### Dual Panel View (Wide Windows)
+
+When window is wide enough:
+
+- History and Memory both available in tabbed panel
+- Switch between tabs with pivot control
+- Panel docked to right side of calculator
+- Tab selection persists when switching modes
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:322-340`
+
+### Flyout View (Narrow Windows)
+
+When window is narrow:
+
+- Separate flyout buttons for History and Memory
+- Clicking button opens overlay panel
+- Panel height matches calculator numpad
+- Close by clicking outside or hide button
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:723-740`
+
+### Programmer Mode Differences
+
+<Info>
+  Programmer mode shows only the Memory panel. History is not available in Programmer mode. The History tab is removed when entering Programmer mode.
+</Info>
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:398-417`
+
+## Keyboard Shortcuts
+
+### Memory Shortcuts
+
+- **Ctrl+M** - Memory Store (MS)
+- **Ctrl+R** - Memory Recall (MR)
+- **Ctrl+P** - Memory Add (M+)
+- **Ctrl+Q** - Memory Subtract (M-)
+- **Ctrl+L** - Clear Memory (MC)
+
+### History Shortcuts
+
+- **Ctrl+H** - Open/close History panel
+- **Up/Down arrows** - Navigate history items
+- **Enter** - Select history item
+- **Delete** - Remove selected history item
+
+## Accessibility
+
+### Screen Reader Support
+
+- Descriptive automation names for all buttons
+- Live region announcements for changes
+- "History cleared" announcement when clearing
+- "Memory cleared" announcement for memory operations
+
+**Source Reference:** `src/CalcViewModel/HistoryViewModel.h:31`
+
+### Automation Names
+
+Buttons announce their state:
+
+- "Open History" / "Close History"
+- "Open Memory" / "Close Memory"
+- "History - Empty" when no history
+- "Memory - Empty" when no memory
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:265-276`
+
+### Panel Descriptions
+
+- **History & Memory Lists** - Dual panel automation name
+- **Memory List** - Programmer mode panel name
+- Updates based on current mode
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:507-513`
+
+## Visual States
+
+### Memory Button States
+
+- **Enabled** - When memory has values
+- **Disabled** - When memory is empty
+- MR and MC buttons disable when no memory
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:307-321`
+
+### History Button States
+
+- Always enabled (even when empty)
+- Shows count of history items
+- Visual indicator when history panel is open
+
+### Error State
+
+When calculator is in error state:
+
+- Memory and History panels reflect error visually
+- Operations are disabled until error is cleared
+- Visual state propagates to panels
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:448-459`
+
+## Data Persistence
+
+Both History and Memory data persist:
+
+- **Between sessions** - Data saved when closing calculator
+- **Per mode** - Each mode maintains separate history
+- **Shared memory** - Memory is shared between Standard/Scientific
+- **Cleared on mode switch** - Programmer mode has separate memory
+
+## Always-On-Top Mode
+
+<Note>
+  Memory features are disabled in Always-On-Top (compact) mode. History is also not accessible in this mode to maximize space for the calculator.
+</Note>
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:425-446`
+
+## Related Features
+
+- [Standard Calculator](/features/standard-calculator) - Basic calculator with memory
+- [Scientific Calculator](/features/scientific-calculator) - Advanced calculator with memory
+- [Programmer Calculator](/features/programmer-calculator) - Memory-only panel

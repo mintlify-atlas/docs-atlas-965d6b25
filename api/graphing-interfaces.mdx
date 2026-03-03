@@ -1,0 +1,350 @@
+---
+title: Graphing API Interfaces
+description: Overview of the common graphing API interfaces used in Windows Calculator
+---
+
+The Windows Calculator graphing mode is built on a common graphing API defined in the `src/GraphingInterfaces` directory. This API provides interfaces for graphing functionality, although developer builds use a mock implementation (in `src/GraphingImpl/Mocks`) since the proprietary Microsoft graphing engine is not included in the open-source repository.
+
+<Note>
+  Developer builds use mock implementations of the graphing engine. The real graphing engine powers graphing in Microsoft Mathematics and OneNote but is not part of the open-source repository.
+</Note>
+
+## Core Interfaces
+
+### IGraphingOptions
+
+The `IGraphingOptions` interface controls graphing behavior, visualization options, and key graph feature detection.
+
+**Location:** `/src/GraphingInterfaces/IGraphingOptions.h`
+
+#### Key Graph Features
+
+Control which mathematical features are automatically detected and marked on graphs:
+
+```cpp
+virtual bool GetMarkZeros() const = 0;
+virtual void SetMarkZeros(bool value) = 0;
+
+virtual bool GetMarkYIntercept() const = 0;
+virtual void SetMarkYIntercept(bool value) = 0;
+
+virtual bool GetMarkMinima() const = 0;
+virtual void SetMarkMinima(bool value) = 0;
+
+virtual bool GetMarkMaxima() const = 0;
+virtual void SetMarkMaxima(bool value) = 0;
+
+virtual bool GetMarkInflectionPoints() const = 0;
+virtual void SetMarkInflectionPoints(bool value) = 0;
+
+virtual bool GetMarkVerticalAsymptotes() const = 0;
+virtual void SetMarkVerticalAsymptotes(bool value) = 0;
+
+virtual bool GetMarkHorizontalAsymptotes() const = 0;
+virtual void SetMarkHorizontalAsymptotes(bool value) = 0;
+
+virtual bool GetMarkObliqueAsymptotes() const = 0;
+virtual void SetMarkObliqueAsymptotes(bool value) = 0;
+```
+
+#### Color Configuration
+
+Customize colors for graph elements and features:
+
+```cpp
+// Graph line colors
+virtual std::vector<Graphing::Color> GetGraphColors() const = 0;
+virtual bool SetGraphColors(const std::vector<Graphing::Color>& colors) = 0;
+virtual void ResetGraphColors() = 0;
+
+// Background color
+virtual Graphing::Color GetBackColor() const = 0;
+virtual void SetBackColor(const Graphing::Color& value) = 0;
+virtual void ResetBackColor() = 0;
+
+// Feature colors
+virtual Graphing::Color GetZerosColor() const = 0;
+virtual void SetZerosColor(const Graphing::Color& value) = 0;
+
+virtual Graphing::Color GetExtremaColor() const = 0;
+virtual void SetExtremaColor(const Graphing::Color& value) = 0;
+
+virtual Graphing::Color GetInflectionPointsColor() const = 0;
+virtual void SetInflectionPointsColor(const Graphing::Color& value) = 0;
+
+virtual Graphing::Color GetAsymptotesColor() const = 0;
+virtual void SetAsymptotesColor(const Graphing::Color& value) = 0;
+
+// UI element colors
+virtual Graphing::Color GetAxisColor() const = 0;
+virtual void SetAxisColor(const Graphing::Color& value) = 0;
+
+virtual Graphing::Color GetBoxColor() const = 0;
+virtual void SetBoxColor(const Graphing::Color& value) = 0;
+
+virtual Graphing::Color GetGridColor() const = 0;
+virtual void SetGridColor(const Graphing::Color& value) = 0;
+
+virtual Graphing::Color GetFontColor() const = 0;
+virtual void SetFontColor(const Graphing::Color& value) = 0;
+```
+
+#### Display Options
+
+Control visual elements of the graph:
+
+```cpp
+virtual bool GetShowAxis() const = 0;
+virtual void SetShowAxis(bool value) = 0;
+virtual void ResetShowAxis() = 0;
+
+virtual bool GetShowGrid() const = 0;
+virtual void SetShowGrid(bool value) = 0;
+virtual void ResetShowGrid() = 0;
+
+virtual bool GetShowBox() const = 0;
+virtual void SetShowBox(bool value) = 0;
+virtual void ResetShowBox() = 0;
+
+virtual bool GetForceProportional() const = 0;
+virtual void SetForceProportional(bool value) = 0;
+virtual void ResetForceProportional() = 0;
+```
+
+#### Axis Configuration
+
+Customize axis labels and default ranges:
+
+```cpp
+// Axis aliases (custom variable names)
+virtual std::wstring GetAliasX() const = 0;
+virtual void SetAliasX(const std::wstring& value) = 0;
+virtual void ResetAliasX() = 0;
+
+virtual std::wstring GetAliasY() const = 0;
+virtual void SetAliasY(const std::wstring& value) = 0;
+virtual void ResetAliasY() = 0;
+
+// Default ranges
+virtual std::pair<double, double> GetDefaultXRange() const = 0;
+virtual bool SetDefaultXRange(const std::pair<double, double>& minmax) = 0;
+virtual void ResetDefaultXRange() = 0;
+
+virtual std::pair<double, double> GetDefaultYRange() const = 0;
+virtual bool SetDefaultYRange(const std::pair<double, double>& minmax) = 0;
+virtual void ResetDefaultYRange() = 0;
+```
+
+#### Line Style
+
+```cpp
+virtual Graphing::Renderer::LineStyle GetLineStyle() const = 0;
+virtual void SetLineStyle(Graphing::Renderer::LineStyle value) = 0;
+virtual void ResetLineStyle() = 0;
+```
+
+See [LineStyle enum](#linestyle) for available values.
+
+#### Performance Settings
+
+```cpp
+virtual unsigned long long GetMaxExecutionTime() const = 0;
+virtual void SetMaxExecutionTime(unsigned long long value) = 0;
+virtual void ResetMaxExecutionTime() = 0;
+
+virtual void SetAllowKeyGraphFeaturesForFunctionsWithParameters(bool kgf) = 0;
+virtual bool GetAllowKeyGraphFeaturesForFunctionsWithParameters() const = 0;
+virtual void ResetAllowKeyGraphFeaturesForFunctionsWithParameters() = 0;
+```
+
+### IMathSolver
+
+The `IMathSolver` interface provides the core mathematical engine for parsing, evaluating, and analyzing expressions.
+
+**Location:** `/src/GraphingInterfaces/IMathSolver.h`
+
+#### Factory Method
+
+```cpp
+static GRAPHINGAPI std::unique_ptr<IMathSolver> CreateMathSolver();
+```
+
+#### Options Access
+
+```cpp
+virtual IParsingOptions& ParsingOptions() = 0;
+virtual IEvalOptions& EvalOptions() = 0;
+virtual IFormatOptions& FormatOptions() = 0;
+```
+
+#### Expression Parsing
+
+```cpp
+virtual std::unique_ptr<IExpression> ParseInput(
+    const std::wstring& input,
+    int& errorCodeOut,
+    int& errorTypeOut
+) = 0;
+
+virtual void HRErrorToErrorInfo(
+    HRESULT hr,
+    int& errorCodeOut,
+    int& errorTypeOut
+) = 0;
+```
+
+#### Graph Creation
+
+```cpp
+virtual std::shared_ptr<IGraph> CreateGrapher(const IExpression* expression) = 0;
+virtual std::shared_ptr<Graphing::IGraph> CreateGrapher() = 0;
+```
+
+#### Serialization and Analysis
+
+```cpp
+virtual std::wstring Serialize(const IExpression* expression) = 0;
+
+virtual Graphing::IGraphFunctionAnalysisData Analyze(
+    const Graphing::Analyzer::IGraphAnalyzer* analyzer
+) = 0;
+```
+
+### IGraphFunctionAnalysisData
+
+Structure containing comprehensive analysis results for a graphed function:
+
+```cpp
+struct IGraphFunctionAnalysisData
+{
+    std::wstring Domain;
+    std::wstring Range;
+    int Parity;
+    int PeriodicityDirection;
+    std::wstring PeriodicityExpression;
+    std::wstring Zeros;
+    std::wstring YIntercept;
+    std::vector<std::wstring> Minima;
+    std::vector<std::wstring> Maxima;
+    std::vector<std::wstring> InflectionPoints;
+    std::vector<std::wstring> VerticalAsymptotes;
+    std::vector<std::wstring> HorizontalAsymptotes;
+    std::vector<std::wstring> ObliqueAsymptotes;
+    std::map<std::wstring, int> MonotoneIntervals;
+    int TooComplexFeatures; // bitwise flag
+};
+```
+
+### Option Interfaces
+
+#### IParsingOptions
+
+Controls how mathematical expressions are parsed:
+
+```cpp
+virtual void SetFormatType(FormatType type) = 0;
+virtual void SetLocalizationType(LocalizationType value) = 0;
+```
+
+#### IEvalOptions
+
+Controls expression evaluation behavior:
+
+```cpp
+virtual EvalTrigUnitMode GetTrigUnitMode() const = 0;
+virtual void SetTrigUnitMode(EvalTrigUnitMode value) = 0;
+```
+
+#### IFormatOptions
+
+Controls output formatting:
+
+```cpp
+virtual void SetFormatType(FormatType type) = 0;
+virtual void SetMathMLPrefix(const std::wstring& value) = 0;
+virtual void SetLocalizationType(LocalizationType value) = 0;
+```
+
+## Enumerations
+
+### LineStyle
+
+Defines the visual style of graph lines:
+
+```cpp
+enum class LineStyle
+{
+    Solid,
+    Dot,
+    Dash,
+    DashDot,
+    DashDotDot
+};
+```
+
+### LocalizationType
+
+Defines number formatting based on locale:
+
+```cpp
+enum class LocalizationType
+{
+    Unknown,
+    DecimalPointAndListComma,      // e.g., 3.14, list: 1,2,3
+    DecimalPointAndListSemicolon,  // e.g., 3.14, list: 1;2;3
+    DecimalCommaAndListSemicolon   // e.g., 3,14, list: 1;2;3
+};
+```
+
+### EvalTrigUnitMode
+
+Defines the unit mode for trigonometric functions:
+
+```cpp
+enum class EvalTrigUnitMode
+{
+    Invalid,
+    Radians,  // Period of sin is 2π
+    Degrees,  // Period of sin is 360°
+    Grads     // Period of sin is 400 grads
+};
+```
+
+<Note>
+  This only affects standard trigonometric functions (Sin, Cos, Tan, Cot, Sec, Csc, ASin, ACos, ATan, ACot, ASec, ACsc). Hyperbolic trig operators and other functions are not affected.
+</Note>
+
+### FormatType
+
+Defines various format types for expression representation:
+
+```cpp
+enum class FormatType
+{
+    Formula,                    // Machine-readable: Sum[1,Divide[2,x]]
+    InvariantFormula,          // Variables as Var(0), Var(1)
+    FormulaWithoutAggregate,   // Formula without grouping parentheses
+    Linear,                    // Human-readable: 1+2/x
+    LinearInput,               // ASCII-only linear format
+    MathML,                    // Standard MathML with root element
+    MathMLNoWrapper,           // MathML without root element
+    MathRichEdit,              // RichEdit format: 1 + \frac{2,x}
+    InlineMathRichEdit,        // Horizontal fractions: 1 + x/(2 a)
+    Binary,                    // Compact binary format
+    InvariantBinary,           // Binary with variable IDs
+    Base64,                    // Base-64 encoded binary
+    InvariantBase64,           // Base-64 encoded invariant binary
+    Latex                      // LaTeX format: \frac{1}{2}
+};
+```
+
+## Related APIs
+
+- [Graph Analyzer](/api/graph-analyzer) - Analysis and feature detection for graphed functions
+
+## Source Files
+
+- `/src/GraphingInterfaces/IGraphingOptions.h` - Main graphing options interface
+- `/src/GraphingInterfaces/IMathSolver.h` - Math solver and expression interfaces
+- `/src/GraphingInterfaces/GraphingEnums.h` - Enumeration definitions
+- `/src/GraphingImpl/Mocks` - Mock implementation for developer builds

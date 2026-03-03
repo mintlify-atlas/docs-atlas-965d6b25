@@ -1,0 +1,101 @@
+---
+title: Standard Calculator
+description: Basic arithmetic operations with immediate evaluation
+---
+
+The Standard Calculator mode provides essential arithmetic functionality for everyday calculations.
+
+## Overview
+
+Standard mode offers basic operations and evaluates commands immediately as they are entered. It's the default calculator mode designed for quick, simple calculations.
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:296`
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Immediate Evaluation" icon="calculator">
+    Commands are evaluated as soon as they are entered, providing instant results.
+  </Card>
+  <Card title="Infinite Precision" icon="infinity">
+    Basic arithmetic operations (addition, subtraction, multiplication, division) use arbitrary-precision arithmetic to never lose precision.
+  </Card>
+  <Card title="Decimal Support" icon="decimal">
+    Full decimal number support for precise calculations.
+  </Card>
+  <Card title="Copy & Paste" icon="clipboard">
+    Copy results to clipboard and paste values from clipboard for calculations.
+  </Card>
+</CardGroup>
+
+## Supported Operations
+
+Standard Calculator supports the following basic operations:
+
+- **Addition** (+)
+- **Subtraction** (-)
+- **Multiplication** (×)
+- **Division** (÷)
+- **Percentage** (%)
+- **Square Root** (√)
+- **Reciprocal** (1/x)
+- **Negate** (+/-)
+
+## Memory Functions
+
+Standard mode includes full memory capabilities:
+
+- **MC** - Memory Clear
+- **MR** - Memory Recall
+- **M+** - Memory Add
+- **M-** - Memory Subtract
+- **MS** - Memory Store
+
+<Info>
+  Memory functions are shared across Standard and Scientific modes but not available in Programmer mode.
+</Info>
+
+## Display Features
+
+### Adaptive Font Sizing
+
+The calculator automatically adjusts font sizes based on:
+- Window size (fullscreen, portrait, snap views)
+- Numeric system (supports 16 different numeric systems including Arabic, Latin, Devanagari, etc.)
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:554-589`
+
+### Context Menu
+
+Right-click or long-press on results to access:
+- Copy result
+- Paste value
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:363-380`
+
+## Animation Support
+
+The calculator includes smooth animations when:
+- Switching between modes
+- Displaying results
+- Transitioning between views
+
+Animations respect the system's animation settings and are disabled if the user has turned off animations in Windows settings.
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:161-176`
+
+## Accessibility
+
+- Full narrator support with automation names
+- Keyboard shortcuts (ESC to clear)
+- High contrast mode support
+- RTL (Right-to-Left) language support
+
+<Note>
+  Standard Calculator is optimized for touch, mouse, and keyboard input methods.
+</Note>
+
+## Related Features
+
+- [History & Memory](/features/history-memory) - Access calculation history and stored memory values
+- [Scientific Calculator](/features/scientific-calculator) - Advanced mathematical operations

@@ -1,0 +1,405 @@
+---
+title: DateCalculatorViewModel
+description: ViewModel for date difference calculations and date offset operations
+---
+
+## Overview
+
+The `DateCalculatorViewModel` class manages date calculations, including calculating the difference between two dates and adding/subtracting days, months, and years from a starting date.
+
+**Namespace:** `CalculatorApp.ViewModel`
+
+**Implements:** `Windows::UI::Xaml::Data::INotifyPropertyChanged`
+
+**Declared in:** `DateCalculatorViewModel.h:15`
+
+## Observable Properties
+
+### Mode Properties
+
+#### IsDateDiffMode
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsDateDiffMode);
+```
+
+Indicates whether the calculator is in "Date Difference" mode. When `true`, calculates the difference between two dates.
+
+#### IsAddMode
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsAddMode);
+```
+
+Indicates whether the calculator is in "Add/Subtract" mode. When `true`, adds or subtracts an offset from a start date.
+
+### Input Properties (Date Difference Mode)
+
+#### FromDate
+
+```cpp
+property Windows::Foundation::DateTime FromDate
+{
+    Windows::Foundation::DateTime get();
+    void set(Windows::Foundation::DateTime value);
+}
+```
+
+The starting date for date difference calculations.
+
+#### ToDate
+
+```cpp
+property Windows::Foundation::DateTime ToDate
+{
+    Windows::Foundation::DateTime get();
+    void set(Windows::Foundation::DateTime value);
+}
+```
+
+The ending date for date difference calculations.
+
+### Input Properties (Add/Subtract Mode)
+
+#### StartDate
+
+```cpp
+property Windows::Foundation::DateTime StartDate
+{
+    Windows::Foundation::DateTime get();
+    void set(Windows::Foundation::DateTime value);
+}
+```
+
+The starting date for add/subtract calculations.
+
+#### DaysOffset
+
+```cpp
+OBSERVABLE_PROPERTY_RW(int, DaysOffset);
+```
+
+Number of days to add or subtract. Maximum value: 999.
+
+#### MonthsOffset
+
+```cpp
+OBSERVABLE_PROPERTY_RW(int, MonthsOffset);
+```
+
+Number of months to add or subtract. Maximum value: 999.
+
+#### YearsOffset
+
+```cpp
+OBSERVABLE_PROPERTY_RW(int, YearsOffset);
+```
+
+Number of years to add or subtract. Maximum value: 999.
+
+#### OffsetValues
+
+```cpp
+property Windows::Foundation::Collections::IVector<Platform::String^>^ OffsetValues
+{
+    Windows::Foundation::Collections::IVector<Platform::String^>^ get();
+}
+```
+
+Read-only collection of valid offset values (0-999) for ComboBox binding.
+
+**Constant:** `c_maxOffsetValue = 999`
+
+### Output Properties (Date Difference Mode)
+
+#### StrDateDiffResult
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, StrDateDiffResult);
+```
+
+Formatted string showing the difference in years, months, and days.
+
+**Example:** "2 years, 3 months, 15 days"
+
+#### StrDateDiffResultInDays
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, StrDateDiffResultInDays);
+```
+
+Formatted string showing the total difference in days only.
+
+**Example:** "835 days"
+
+#### IsDiffInDays
+
+```cpp
+OBSERVABLE_PROPERTY_R(bool, IsDiffInDays);
+```
+
+Indicates whether the difference should only be shown in days (when dates are the same or difference is less than 1 month).
+
+#### StrDateDiffResultAutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, StrDateDiffResultAutomationName);
+```
+
+Accessibility-friendly text for the date difference result.
+
+### Output Properties (Add/Subtract Mode)
+
+#### StrDateResult
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, StrDateResult);
+```
+
+Formatted string showing the calculated result date.
+
+**Example:** "Wednesday, March 15, 2023"
+
+#### StrDateResultAutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_R(Platform::String^, StrDateResultAutomationName);
+```
+
+Accessibility-friendly text for the result date.
+
+## Commands
+
+### CopyCommand
+
+```cpp
+COMMAND_FOR_METHOD(CopyCommand, DateCalculatorViewModel::OnCopyCommand);
+```
+
+Copies the calculation result to the clipboard.
+
+**Implementation:**
+```cpp
+void OnCopyCommand(Platform::Object^ parameter);
+```
+
+## Key Methods
+
+### Constructor
+
+```cpp
+DateCalculatorViewModel();
+```
+
+Initializes the date calculator with default values and sets up date formatting.
+
+### Private Methods
+
+#### OnPropertyChanged
+
+```cpp
+void OnPropertyChanged(_In_ Platform::String^ prop);
+```
+
+Callback invoked when any property changes. Triggers input validation and result recalculation.
+
+#### OnInputsChanged
+
+```cpp
+void OnInputsChanged();
+```
+
+Recalculates results when input properties change.
+
+#### UpdateDisplayResult
+
+```cpp
+void UpdateDisplayResult();
+```
+
+Updates the formatted result strings based on current calculation results.
+
+#### GetDateDiffString
+
+```cpp
+Platform::String^ GetDateDiffString() const;
+```
+
+Formats the date difference as "X years, Y months, Z days".
+
+#### GetDateDiffStringInDays
+
+```cpp
+Platform::String^ GetDateDiffStringInDays() const;
+```
+
+Formats the date difference as total days.
+
+#### GetLocalizedNumberString
+
+```cpp
+Platform::String^ GetLocalizedNumberString(int value) const;
+```
+
+Converts an integer to a localized string representation.
+
+#### ClipTime
+
+```cpp
+static Windows::Foundation::DateTime ClipTime(
+    Windows::Foundation::DateTime dateTime,
+    bool adjustUsingLocalTime = false
+);
+```
+
+Removes the time component from a DateTime, keeping only the date.
+
+## INotifyPropertyChanged Implementation
+
+The ViewModel uses the `OBSERVABLE_OBJECT_CALLBACK` macro:
+
+```cpp
+OBSERVABLE_OBJECT_CALLBACK(OnPropertyChanged);
+```
+
+This generates automatic property change notifications and calls the `OnPropertyChanged` method for custom logic.
+
+## Property Macro Usage
+
+### Observable Property Example
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsDateDiffMode);
+```
+
+Expands to:
+```cpp
+property bool IsDateDiffMode
+{
+    bool get() { return m_IsDateDiffMode; }
+    void set(bool value)
+    {
+        if (m_IsDateDiffMode != value)
+        {
+            m_IsDateDiffMode = value;
+            RaisePropertyChanged(L"IsDateDiffMode");
+        }
+    }
+}
+private:
+    bool m_IsDateDiffMode;
+public:
+```
+
+### Custom Property Example
+
+The `FromDate`, `ToDate`, and `StartDate` properties are implemented manually to call `RaisePropertyChanged`:
+
+```cpp
+property Windows::Foundation::DateTime FromDate
+{
+    Windows::Foundation::DateTime get()
+    {
+        return m_fromDate;
+    }
+    void set(Windows::Foundation::DateTime value)
+    {
+        if (m_fromDate.UniversalTime != value.UniversalTime)
+        {
+            m_fromDate = value;
+            RaisePropertyChanged("FromDate");
+        }
+    }
+}
+```
+
+## Usage Examples
+
+### Date Difference Mode
+
+```cpp
+// Create ViewModel
+auto dateVM = ref new DateCalculatorViewModel();
+
+// Set to Date Difference mode
+dateVM->IsDateDiffMode = true;
+
+// Set dates
+Windows::Foundation::DateTime from, to;
+// ... initialize dates ...
+dateVM->FromDate = from;
+dateVM->ToDate = to;
+
+// Get results
+Platform::String^ difference = dateVM->StrDateDiffResult;
+// e.g., "2 years, 3 months, 15 days"
+
+Platform::String^ totalDays = dateVM->StrDateDiffResultInDays;
+// e.g., "835 days"
+
+// Copy result
+dateVM->CopyCommand->Execute(nullptr);
+```
+
+### Add/Subtract Mode
+
+```cpp
+// Create ViewModel
+auto dateVM = ref new DateCalculatorViewModel();
+
+// Set to Add/Subtract mode
+dateVM->IsAddMode = true;
+
+// Set start date
+Windows::Foundation::DateTime startDate;
+// ... initialize date ...
+dateVM->StartDate = startDate;
+
+// Add 2 years, 6 months, 10 days
+dateVM->YearsOffset = 2;
+dateVM->MonthsOffset = 6;
+dateVM->DaysOffset = 10;
+
+// Get result
+Platform::String^ resultDate = dateVM->StrDateResult;
+// e.g., "Wednesday, September 25, 2025"
+
+// Copy result
+dateVM->CopyCommand->Execute(nullptr);
+```
+
+### Binding to XAML
+
+```xml
+<DatePicker Date="{x:Bind ViewModel.FromDate, Mode=TwoWay}" />
+<DatePicker Date="{x:Bind ViewModel.ToDate, Mode=TwoWay}" />
+
+<TextBlock Text="{x:Bind ViewModel.StrDateDiffResult, Mode=OneWay}" />
+<TextBlock Text="{x:Bind ViewModel.StrDateDiffResultInDays, Mode=OneWay}" />
+
+<ComboBox ItemsSource="{x:Bind ViewModel.OffsetValues}"
+          SelectedItem="{x:Bind ViewModel.DaysOffset, Mode=TwoWay}" />
+```
+
+## Accessibility
+
+The ViewModel provides separate automation names for screen readers:
+
+- `StrDateDiffResultAutomationName` - Narrator-friendly date difference
+- `StrDateResultAutomationName` - Narrator-friendly result date
+
+These properties format dates and numbers in a way that screen readers can pronounce clearly.
+
+## Localization
+
+The ViewModel uses the current system locale for:
+- Date formatting (`DateTimeFormatter`)
+- Number formatting (`GetLocalizedNumberString`)
+- List separators in results
+
+All displayed dates and numbers respect the user's regional settings.
+
+## See Also
+
+- [ApplicationViewModel](/api/application-viewmodel) - Application-level state management
+- [DateCalculationEngine](https://github.com/microsoft/calculator/blob/main/src/CalcViewModel/Common/DateCalculator.h) - Date calculation logic

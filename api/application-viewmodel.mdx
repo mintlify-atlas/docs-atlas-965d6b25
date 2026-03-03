@@ -1,0 +1,265 @@
+---
+title: ApplicationViewModel
+description: Core ViewModel that manages the calculator's application state, mode navigation, and Always-on-Top functionality
+---
+
+## Overview
+
+The `ApplicationViewModel` class is the central ViewModel for the Windows Calculator application. It manages the overall application state, handles navigation between different calculator modes, and coordinates interactions between specialized ViewModels.
+
+**Namespace:** `CalculatorApp.ManagedViewModels`
+
+**Implements:** `INotifyPropertyChanged`
+
+## Key Properties
+
+### Mode
+
+```csharp
+public ViewMode Mode { get; set; }
+```
+
+Gets or sets the current calculator mode. When changed, automatically updates `PreviousMode` and triggers mode-specific ViewModel initialization.
+
+**Supported modes:**
+- `ViewMode.Standard` - Standard calculator
+- `ViewMode.Scientific` - Scientific calculator
+- `ViewMode.Programmer` - Programmer calculator
+- `ViewMode.DateCalculation` - Date calculator
+- `ViewMode.Currency` - Currency converter
+- `ViewMode.Volume`, `ViewMode.Length`, etc. - Unit converters
+
+### CalculatorViewModel
+
+```csharp
+public StandardCalculatorViewModel CalculatorViewModel { get; set; }
+```
+
+Gets or sets the ViewModel for Standard, Scientific, and Programmer calculator modes. Automatically initialized when navigating to calculator modes.
+
+### DateCalcViewModel
+
+```csharp
+public DateCalculatorViewModel DateCalcViewModel { get; set; }
+```
+
+Gets or sets the ViewModel for the Date Calculator mode.
+
+### ConverterViewModel
+
+```csharp
+public UnitConverterViewModel ConverterViewModel { get; set; }
+```
+
+Gets or sets the ViewModel for all unit converter modes (Currency, Volume, Length, etc.).
+
+### GraphingCalcViewModel
+
+```csharp
+public GraphingCalculatorViewModel GraphingCalcViewModel { get; set; }
+```
+
+Gets or sets the ViewModel for the Graphing Calculator mode.
+
+### IsAlwaysOnTop
+
+```csharp
+public bool IsAlwaysOnTop { get; private set; }
+```
+
+Indicates whether the calculator is currently in Always-on-Top (CompactOverlay) mode.
+
+### DisplayNormalAlwaysOnTopOption
+
+```csharp
+public bool DisplayNormalAlwaysOnTopOption { get; private set; }
+```
+
+Indicates whether the Always-on-Top option should be displayed. Returns `true` when:
+- Calculator is in Standard mode
+- CompactOverlay is supported by the system
+- Not currently in Always-on-Top mode
+
+### CategoryName
+
+```csharp
+public string CategoryName { get; set; }
+```
+
+Gets or sets the localized name of the current calculator category.
+
+### Categories
+
+```csharp
+public IList<NavCategoryGroup> Categories { get; set; }
+```
+
+Gets or sets the collection of navigation categories for the calculator menu.
+
+### PreviousMode
+
+```csharp
+public ViewMode PreviousMode { get; set; }
+```
+
+Gets or sets the previous calculator mode before the current mode change.
+
+### Snapshot
+
+```csharp
+public ApplicationSnapshot Snapshot { get; }
+```
+
+Gets a snapshot of the current application state for persistence and restoration.
+
+### ClearMemoryVisibility
+
+```csharp
+public Visibility ClearMemoryVisibility { get; }
+```
+
+Returns `Visibility.Visible` for calculator modes, `Visibility.Collapsed` for other modes.
+
+## Commands
+
+### CopyCommand
+
+```csharp
+public ICommand CopyCommand { get; }
+```
+
+Delegates copy operations to the active ViewModel based on current mode.
+
+### PasteCommand
+
+```csharp
+public ICommand PasteCommand { get; }
+```
+
+Delegates paste operations to the active ViewModel based on current mode.
+
+## Methods
+
+### Initialize
+
+```csharp
+public void Initialize(ViewMode mode)
+```
+
+Initializes the application with the specified calculator mode. Validates the mode and falls back to Standard mode if invalid or disabled.
+
+**Parameters:**
+- `mode` - The initial ViewMode to set
+
+**Example:**
+```csharp
+var appViewModel = new ApplicationViewModel();
+appViewModel.Initialize(ViewMode.Standard);
+```
+
+### ToggleAlwaysOnTop
+
+```csharp
+public async Task ToggleAlwaysOnTop(double width, double height)
+```
+
+Toggles the Always-on-Top (CompactOverlay) mode. Saves window dimensions to local settings for restoration.
+
+**Parameters:**
+- `width` - Current window width
+- `height` - Current window height
+
+**Local Settings Keys:**
+- `calculatorAlwaysOnTopLastWidth` - Saved width
+- `calculatorAlwaysOnTopLastHeight` - Saved height
+- `calculatorAlwaysOnTopLaunched` - First launch flag
+
+**Default CompactOverlay Size:** 320x394
+
+**Example:**
+```csharp
+await appViewModel.ToggleAlwaysOnTop(400, 600);
+```
+
+### RestoreFromSnapshot
+
+```csharp
+public void RestoreFromSnapshot(ApplicationSnapshot snapshot)
+```
+
+Restores application state from a previously saved snapshot.
+
+**Parameters:**
+- `snapshot` - The ApplicationSnapshot containing saved state
+
+**Example:**
+```csharp
+var snapshot = LoadSnapshot();
+appViewModel.RestoreFromSnapshot(snapshot);
+```
+
+## INotifyPropertyChanged Implementation
+
+The ApplicationViewModel implements property change notifications automatically:
+
+```csharp
+public event PropertyChangedEventHandler PropertyChanged;
+
+private void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+{
+    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+}
+```
+
+All public properties automatically raise `PropertyChanged` events when their values change, enabling XAML data binding.
+
+## Mode Navigation Flow
+
+When the `Mode` property changes:
+
+1. `PreviousMode` is set to the current mode
+2. The new mode is validated
+3. `OnModeChanged()` is called, which:
+   - Initializes the appropriate ViewModel (lazy initialization)
+   - Updates the `CategoryName` with localized text
+   - Saves the mode to local settings
+   - Logs telemetry events
+   - Updates `ClearMemoryVisibility`
+
+## Usage Example
+
+```csharp
+var appViewModel = new ApplicationViewModel();
+
+// Initialize to Standard calculator
+appViewModel.Initialize(ViewMode.Standard);
+
+// Access the calculator ViewModel
+var calcVM = appViewModel.CalculatorViewModel;
+calcVM.ButtonPressed.Execute("1");
+
+// Switch to Date Calculator
+appViewModel.Mode = ViewMode.DateCalculation;
+
+// Access the date calculator ViewModel
+var dateVM = appViewModel.DateCalcViewModel;
+
+// Toggle Always-on-Top mode
+await appViewModel.ToggleAlwaysOnTop(320, 394);
+
+// Check if in Always-on-Top mode
+if (appViewModel.IsAlwaysOnTop)
+{
+    // Handle CompactOverlay UI
+}
+```
+
+## Thread Safety
+
+Property changes and mode navigation should occur on the UI thread. The `ToggleAlwaysOnTop` method uses async/await for view mode transitions.
+
+## See Also
+
+- [StandardCalculatorViewModel](/api/standard-calculator-viewmodel) - Calculator operations
+- [DateCalculatorViewModel](/api/date-calculator-viewmodel) - Date calculations
+- [UnitConverterViewModel](/api/unit-converter-viewmodel) - Unit conversions

@@ -1,0 +1,286 @@
+---
+title: Installation
+description: Complete installation guide for setting up your Windows Calculator development environment with all prerequisites and tools.
+---
+
+# Installation Guide
+
+This guide provides detailed instructions for setting up a complete development environment for Windows Calculator.
+
+## System Requirements
+
+### Operating System
+
+<Warning>
+Your computer **must** be running **Windows 11, build 22000 or newer**. Windows Calculator uses UWP features that require Windows 11.
+</Warning>
+
+To check your Windows version:
+1. Press `Win + R`
+2. Type `winver` and press Enter
+3. Verify you're running Windows 11, build 22000 or higher
+
+### Hardware Requirements
+
+- **Processor**: 1.8 GHz or faster multi-core processor
+- **RAM**: 8GB minimum, 16GB recommended
+- **Disk Space**: At least 10GB of free space
+- **Display**: 1280 x 720 minimum resolution
+
+## Step-by-Step Installation
+
+<Steps>
+  <Step title="Install Visual Studio">
+    Download and install the latest version of Visual Studio. The free Community edition is sufficient for Calculator development.
+
+    **Download Visual Studio**:
+    - Visit [Visual Studio Downloads](https://developer.microsoft.com/en-us/windows/downloads)
+    - Download Visual Studio 2022 or later
+    - Run the installer
+
+    <Note>
+    Visual Studio Community is free for individual developers, open-source projects, academic research, education, and small professional teams.
+    </Note>
+  </Step>
+
+  <Step title="Install Required Workloads">
+    During Visual Studio installation (or by running the Visual Studio Installer later), ensure you install the following workload:
+
+    ### Universal Windows Platform Development
+
+    1. In the Visual Studio Installer, select the **Workloads** tab
+    2. Check **Universal Windows Platform development**
+    3. In the **Installation details** panel on the right, ensure the following are selected:
+       - **C++ Universal Windows Platform tools**
+       - **Windows 11 SDK (latest version)**
+
+    ![Visual Studio Installation](https://raw.githubusercontent.com/microsoft/calculator/main/docs/Images/VSInstallationScreenshot.png)
+
+    <Warning>
+    The **C++ Universal Windows Platform tools** component is optional in the installer but **required** for Calculator. Make sure to check this option.
+    </Warning>
+  </Step>
+
+  <Step title="Install Windows 11 SDK">
+    The Windows 11 SDK should be installed as part of the UWP workload, but verify you have the latest version:
+
+    1. In Visual Studio Installer, go to **Individual components** tab
+    2. Search for "Windows 11 SDK"
+    3. Select the latest Windows 11 SDK version available
+    4. Click **Modify** to install
+
+    <Note>
+    Calculator requires the latest Windows 11 SDK. If you have an older SDK version, update to the latest.
+    </Note>
+  </Step>
+
+  <Step title="Install XAML Styler Extension">
+    XAML Styler is a Visual Studio extension that formats XAML markup according to the project's style guidelines.
+
+    **Install from Visual Studio**:
+    1. Open Visual Studio
+    2. Go to **Extensions → Manage Extensions**
+    3. Search for "XAML Styler"
+    4. Click **Download** and restart Visual Studio to complete installation
+
+    **Install from Marketplace**:
+    - Visit [XAML Styler on Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=TeamXavalon.XAMLStyler)
+    - Click **Download**
+    - Run the downloaded VSIX file
+
+    <Note>
+    XAML Styler helps maintain consistent code formatting across the project. It's essential for contributions that will be accepted.
+    </Note>
+  </Step>
+
+  <Step title="Clone the Repository">
+    Use Git to clone the Windows Calculator repository:
+
+    ```bash
+    git clone https://github.com/Microsoft/calculator.git
+    ```
+
+    If you plan to contribute, consider forking the repository first:
+
+    1. Go to [github.com/Microsoft/calculator](https://github.com/Microsoft/calculator)
+    2. Click the **Fork** button
+    3. Clone your fork:
+
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/calculator.git
+    ```
+
+    Then add the upstream remote:
+
+    ```bash
+    cd calculator
+    git remote add upstream https://github.com/Microsoft/calculator.git
+    ```
+  </Step>
+
+  <Step title="Open and Build the Solution">
+    1. Navigate to the cloned repository
+    2. Open `src\Calculator.sln` in Visual Studio
+    3. Wait for Visual Studio to load the solution and restore NuGet packages
+    4. Select your build configuration:
+       - **Configuration**: Debug or Release
+       - **Platform**: x64, x86, or ARM64
+    5. Build the solution:
+       - Press `F6` or `Ctrl+Shift+B`
+       - Or from menu: **Build → Build Solution**
+
+    <Note>
+    The first build may take 5-10 minutes depending on your system. Subsequent builds will be faster.
+    </Note>
+  </Step>
+</Steps>
+
+## Optional: Install Windows Application Driver
+
+To run UI tests, install Windows Application Driver (WinAppDriver):
+
+<Steps>
+  <Step title="Download WinAppDriver">
+    Visit the [WinAppDriver releases page](https://github.com/microsoft/WinAppDriver/releases/latest) and download the latest MSI installer.
+  </Step>
+
+  <Step title="Install WinAppDriver">
+    Run the downloaded MSI file and follow the installation wizard.
+  </Step>
+
+  <Step title="Verify Installation">
+    After installation, you can run UI tests from Visual Studio's Test Explorer.
+  </Step>
+</Steps>
+
+## Verify Your Installation
+
+After completing the installation, verify everything is set up correctly:
+
+### Build Test
+
+1. Open `src\Calculator.sln` in Visual Studio
+2. Build the solution (F6)
+3. Verify the build completes without errors
+
+### Run Test
+
+1. Press F5 to run with debugging
+2. The Calculator app should launch
+3. Test basic functionality:
+   - Perform calculations in Standard mode
+   - Switch between different calculator modes
+   - Try the unit converter
+
+## Project Structure Overview
+
+After cloning, you'll see the following key directories:
+
+```
+calculator/
+├── src/
+│   ├── Calculator/          # Main UI project (XAML views)
+│   ├── CalcViewModel/       # ViewModel layer (MVVM)
+│   ├── CalcManager/         # Business logic and calculation engine
+│   ├── Calculator.sln       # Visual Studio solution file
+│   └── ...
+├── docs/
+│   ├── ApplicationArchitecture.md
+│   ├── Images/
+│   └── ...
+├── CONTRIBUTING.md
+├── README.md
+└── LICENSE
+```
+
+<Note>
+For a detailed explanation of the architecture, see the [Application Architecture documentation](https://github.com/microsoft/calculator/blob/main/docs/ApplicationArchitecture.md).
+</Note>
+
+## Development Environment Configuration
+
+### Recommended Visual Studio Settings
+
+- **Enable XAML Hot Reload**: Go to **Tools → Options → Debugging → Hot Reload** and enable XAML Hot Reload
+- **C++ Code Style**: The project follows the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
+- **Enable IntelliSense**: Ensure IntelliSense is enabled for both C++ and C# files
+
+### Git Configuration
+
+Configure Git with your information:
+
+```bash
+git config user.name "Your Name"
+git config user.email "your.email@example.com"
+```
+
+## Troubleshooting
+
+### Build Errors
+
+<Warning>
+**"Windows SDK not found"**
+
+If you see SDK-related errors:
+1. Open Visual Studio Installer
+2. Modify your installation
+3. Install the latest Windows 11 SDK
+4. Restart Visual Studio
+</Warning>
+
+**"C++ tools not installed"**
+
+If you see C++ compilation errors:
+1. Open Visual Studio Installer
+2. Modify your installation
+3. Under "Universal Windows Platform development", check "C++ Universal Windows Platform tools"
+4. Click Modify and wait for installation
+
+**"NuGet package restore failed"**
+
+If NuGet packages fail to restore:
+1. Check your internet connection
+2. Go to **Tools → NuGet Package Manager → Package Manager Settings**
+3. Click **Clear All NuGet Cache(s)**
+4. Rebuild the solution
+
+### Runtime Errors
+
+**"App failed to deploy"**
+
+If the app fails to deploy:
+1. Ensure Developer Mode is enabled in Windows Settings
+2. Go to **Settings → Privacy & Security → For developers**
+3. Turn on **Developer Mode**
+
+**"Access denied" when debugging**
+
+Run Visual Studio as Administrator (right-click → Run as administrator)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start Guide" icon="rocket" href="/quickstart">
+    Jump into building and running the app
+  </Card>
+  <Card title="Architecture Overview" icon="sitemap" href="/architecture">
+    Understand the MVVM design and project structure
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/contributing">
+    Learn how to contribute to the project
+  </Card>
+  <Card title="Application Architecture" icon="book" href="https://github.com/microsoft/calculator/blob/main/docs/ApplicationArchitecture.md">
+    Deep dive into the technical architecture
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- **C++/CX Documentation**: [Visual C++ Language Reference](https://docs.microsoft.com/en-us/cpp/cppcx/visual-c-language-reference-c-cx)
+- **UWP Development**: [Universal Windows Platform Guide](https://docs.microsoft.com/en-us/windows/uwp/get-started/universal-application-platform-guide)
+- **XAML Overview**: [XAML Platform](https://docs.microsoft.com/en-us/windows/uwp/xaml-platform/xaml-overview)
+- **MVVM Pattern**: [Data Binding and MVVM](https://docs.microsoft.com/en-us/windows/uwp/data-binding/data-binding-and-mvvm)
+
+<Note>
+If you encounter any issues not covered in this guide, please check the [GitHub Issues](https://github.com/Microsoft/calculator/issues) or create a new issue for help.
+</Note>

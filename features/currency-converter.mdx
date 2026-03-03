@@ -1,0 +1,241 @@
+---
+title: Currency Converter
+description: Real-time currency conversion with exchange rates from Bing
+---
+
+The Currency Converter is a specialized category within the Unit Converter that provides real-time currency exchange rate conversions.
+
+## Overview
+
+Currency conversion in Windows Calculator uses live exchange rate data from Bing to provide accurate, up-to-date conversions between world currencies.
+
+<Info>
+  **Developer Builds:** Currency converter uses mock data with fictional planet names instead of real countries. This mock data remains static regardless of inputs and is clearly identifiable.
+</Info>
+
+**Source Reference:** README.md:64-68
+
+## Features
+
+<CardGroup cols={2}>
+  <Card title="Live Exchange Rates" icon="chart-line">
+    Real-time rates from Bing (retail builds only)
+  </Card>
+  <Card title="Dual Conversion" icon="arrows-rotate">
+    Convert in both directions simultaneously
+  </Card>
+  <Card title="Cached Data" icon="database">
+    Works offline with last downloaded rates
+  </Card>
+  <Card title="Multiple Currencies" icon="globe">
+    Support for major world currencies
+  </Card>
+</CardGroup>
+
+## Currency Data Management
+
+### Automatic Updates
+
+The currency converter intelligently manages exchange rate data:
+
+1. **On First Use** - Attempts to load from cache
+2. **If Cache Miss** - Downloads latest rates from Bing
+3. **On Subsequent Uses** - Checks cache freshness
+4. **Auto-refresh** - Updates when data is stale
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:198-201`
+
+### Manual Refresh
+
+Click the refresh button to:
+- Force download of latest rates
+- Update timestamp
+- Refresh all displayed conversions
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:167-180`
+
+<Note>
+  The refresh button is disabled while a refresh operation is in progress to prevent duplicate requests.
+</Note>
+
+## Network Behavior
+
+The currency converter adapts to different network conditions:
+
+### Network States
+
+#### Normal Access
+
+- Automatically downloads exchange rates
+- Refreshes data as needed
+- No user prompts required
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:254-267`
+
+#### Metered Connection (Opt-In)
+
+- Prompts user before downloading
+- Shows "Data charges may apply" warning
+- User can click refresh to override and download
+- Preference remembered for session
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:269-282`
+
+#### Offline Mode
+
+- Uses cached exchange rates
+- Shows offline indicator with timestamp
+- Displays link to network settings
+- No automatic refresh attempts
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:284-288`
+
+## Currency Display
+
+### Currency Symbols
+
+Currency symbols are displayed according to regional preferences:
+
+- **Left-side** - Symbol before amount (e.g., "$100")
+- **Right-side** - Symbol after amount (e.g., "100€")
+
+The position is determined by your Windows locale settings.
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:54-56`
+
+### Exchange Rate Information
+
+The converter displays:
+
+- **Equality Statement** - "1 USD = 0.85 EUR"
+- **Accessible Equality** - Screen-reader friendly version
+- **Inverse Rate** - Conversion in opposite direction
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:194-195`
+
+### Timestamp Display
+
+Shows when exchange rates were last updated:
+
+- Normal font weight for recent data
+- **Bold font weight** if data is more than a week old
+- Absolute date/time stamp
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:336-346`
+
+## Data Structure
+
+### Currency Static Data
+
+Each currency contains:
+
+```cpp
+struct CurrencyStaticData {
+    std::wstring countryCode;    // ISO country code
+    std::wstring countryName;    // Country name
+    std::wstring currencyCode;   // ISO currency code (USD, EUR, etc.)
+    std::wstring currencyName;   // Currency name
+    std::wstring currencySymbol; // Symbol ($, €, £, etc.)
+};
+```
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:143-150`
+
+### Currency Ratio
+
+Exchange rate information:
+
+```cpp
+struct CurrencyRatio {
+    double ratio;                      // Exchange rate
+    std::wstring sourceCurrencyCode;   // From currency
+    std::wstring targetCurrencyCode;   // To currency
+};
+```
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:152-157`
+
+## Callback Interface
+
+The currency converter uses callbacks to update the UI:
+
+- **CurrencyDataLoadFinished** - Notifies when data loading completes
+- **CurrencySymbolsCallback** - Updates currency symbols
+- **CurrencyRatiosCallback** - Updates exchange rate display
+- **CurrencyTimestampCallback** - Updates last refresh time
+- **NetworkBehaviorChanged** - Handles network state changes
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:166-175`
+
+## Loading States
+
+The converter provides visual feedback during operations:
+
+### Progress Indication
+
+- Progress ring appears after 500ms delay
+- Prevents UI flicker for fast connections
+- Cancels if data loads quickly
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:348-374`
+
+### State Transitions
+
+1. **Unit Not Loaded** - Initial state or during refresh
+2. **Loading** - Progress ring visible
+3. **Unit Loaded** - Data available, conversion ready
+4. **Failed** - Error state with retry option
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:209-228`
+
+## Error Handling
+
+### Network Errors
+
+If rate download fails:
+
+- "Failed to refresh" message displayed
+- Last cached rates still available
+- Retry button enabled
+- Error doesn't prevent using cached data
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:330-334`
+
+### Cache Failures
+
+If cache is unavailable:
+
+- Attempts web download immediately
+- Shows loading indicator
+- Falls back to offline mode if both fail
+
+## Async Operations
+
+Currency data loading uses async operations:
+
+- **TryLoadDataFromCacheAsync()** - Load from local cache
+- **TryLoadDataFromWebAsync()** - Download from Bing
+- **TryLoadDataFromWebOverrideAsync()** - Force download (metered override)
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:198-200`
+
+## Privacy & Telemetry
+
+<Note>
+  Currency conversion telemetry is disabled in developer builds by default. It can be enabled with the SEND_DIAGNOSTICS build flag.
+</Note>
+
+**Source Reference:** README.md:58-62
+
+## Common Use Cases
+
+- **Travel planning** - Convert home currency to destination currency
+- **International shopping** - Compare prices across regions
+- **Foreign exchange** - Calculate exchange rates for transactions
+- **Investment tracking** - Monitor currency values
+- **Business calculations** - International pricing and invoicing
+
+## Related Features
+
+- [Unit Converter](/features/unit-converter) - Main unit conversion interface
+- [Standard Calculator](/features/standard-calculator) - Perform calculations on converted amounts

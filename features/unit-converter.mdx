@@ -1,0 +1,240 @@
+---
+title: Unit Converter
+description: Convert between various units of measurement across multiple categories
+---
+
+The Unit Converter provides conversion between many units of measurement across different categories, from length and weight to temperature and energy.
+
+## Overview
+
+Unit Converter supports conversion between various units of measurement across multiple categories. Simply select a category, enter a value in one unit, and instantly see the equivalent values in other units.
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs`
+
+## Conversion Categories
+
+<CardGroup cols={3}>
+  <Card title="Length" icon="ruler">
+    Distance and length measurements
+  </Card>
+  <Card title="Weight and Mass" icon="weight-scale">
+    Mass and weight conversions
+  </Card>
+  <Card title="Temperature" icon="temperature-half">
+    Temperature scales
+  </Card>
+  <Card title="Energy" icon="bolt">
+    Energy and work units
+  </Card>
+  <Card title="Area" icon="square">
+    Surface area measurements
+  </Card>
+  <Card title="Volume" icon="cube">
+    Volume and capacity
+  </Card>
+  <Card title="Speed" icon="gauge-high">
+    Velocity and speed
+  </Card>
+  <Card title="Time" icon="clock">
+    Time duration units
+  </Card>
+  <Card title="Power" icon="plug">
+    Power and rate of energy
+  </Card>
+  <Card title="Data" icon="hard-drive">
+    Digital storage units
+  </Card>
+  <Card title="Pressure" icon="gauge">
+    Pressure measurements
+  </Card>
+  <Card title="Angle" icon="compass">
+    Angular measurements
+  </Card>
+</CardGroup>
+
+## Conversion Interface
+
+### Dual Input/Output
+
+The converter features two value fields:
+
+- **Value 1** - Enter a value to convert from
+- **Value 2** - Enter a value to convert to
+
+Both fields are bidirectional - you can type in either field and the other will update automatically. This makes it easy to convert in both directions.
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:149-155`
+
+### Unit Selection
+
+Each value field has a dropdown to select the unit:
+
+- Searchable dropdown lists
+- Units organized by category
+- Common units appear first
+- Support for both standard and metric systems
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:157-161`
+
+## Special Features
+
+### Currency Converter
+
+The Currency category has unique features:
+
+<Info>
+  Currency conversion uses live exchange rates from Bing in retail builds. Developer builds use mock data with fictional planet names instead of countries.
+</Info>
+
+**Source Reference:** README.md and `src/CalcManager/UnitConverter.h:166-175`
+
+#### Network Status Handling
+
+The converter intelligently handles different network conditions:
+
+- **Normal Access** - Automatically fetches latest rates
+- **Metered Connection** - Prompts before downloading (opt-in)
+- **Offline** - Uses cached rates with timestamp
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:238-252`
+
+#### Currency Features
+
+- **Auto-refresh** - Rates refresh automatically when opening currency mode
+- **Manual refresh** - Click refresh button to update rates
+- **Timestamp** - Shows when rates were last updated
+- **Week-old warning** - Visual indicator if rates are more than a week old
+- **Network status** - Clear indication of connection state
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:167-180`
+
+### Offline Indicators
+
+<Note>
+  When offline, the calculator displays a message with a link to network settings, allowing you to quickly restore connectivity.
+</Note>
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:284-317`
+
+## Supplementary Results
+
+For some categories, the converter shows additional common conversions automatically:
+
+- Displays frequently used unit equivalents
+- Updates in real-time as you type
+- Helps you quickly see values in multiple units simultaneously
+
+## Data Architecture
+
+The converter uses a sophisticated conversion engine:
+
+### Conversion Data Structure
+
+```cpp
+struct ConversionData {
+    double ratio;      // Conversion ratio
+    double offset;     // Offset for non-linear conversions (e.g., temperature)
+    bool offsetFirst;  // Whether to apply offset before or after ratio
+};
+```
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:126-141`
+
+### Unit Structure
+
+Each unit contains:
+
+- **ID** - Unique identifier
+- **Name** - Display name
+- **Accessible Name** - Screen reader-friendly name
+- **Abbreviation** - Short symbol
+- **Conversion flags** - Source/target compatibility
+- **Whimsical flag** - For special units (e.g., mock currency units)
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:16-73`
+
+## User Interface Features
+
+### Animation
+
+Smooth transitions when:
+- Switching categories
+- Updating values
+- Opening the converter
+
+Animations respect Windows system settings.
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:75-81`
+
+### RTL Support
+
+Full right-to-left language support:
+
+- Layout direction adapts to language
+- Currency symbols positioned correctly for locale
+- Text alignment follows cultural norms
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:46-56`
+
+### Context Menu
+
+Right-click on any value to:
+
+- **Copy** - Copy the value to clipboard
+- **Paste** - Paste a value from clipboard
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:108-147`
+
+## Keyboard Support
+
+- **Number keys** - Enter values
+- **Decimal point** - Enter decimals
+- **Tab** - Switch between fields
+- **Esc** - Clear current entry
+- **Space** - Select dropdown (when focused)
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:100-106`
+
+## Accessibility
+
+- Screen reader support with descriptive names
+- Keyboard navigation throughout
+- High contrast mode compatible
+- Large touch targets for mobile devices
+- Clear visual feedback for all interactions
+
+## State Persistence
+
+The converter remembers:
+
+- Last selected category
+- Last used units in each category
+- Previously entered values
+- Network preference settings
+
+State is preserved when switching between calculator modes and restored when returning.
+
+**Source Reference:** `src/CalcManager/UnitConverter.h:249-250`
+
+## Visual States
+
+### Loading States
+
+- **Unit Loaded** - Category is ready, conversions available
+- **Unit Not Loaded** - Data is being fetched (currency only)
+- **Progress Ring** - Shown after 500ms delay to avoid flashing
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:209-228`
+
+### Error States
+
+- **Charges May Apply** - Warning for metered connections
+- **Failed to Refresh** - Network error indicator
+- **Offline** - No network connection
+
+**Source Reference:** `src/Calculator/Views/UnitConverter.xaml.cs:254-334`
+
+## Related Features
+
+- [Currency Converter](/features/currency-converter) - Detailed currency conversion features
+- [Date Calculator](/features/date-calculator) - Date and time calculations

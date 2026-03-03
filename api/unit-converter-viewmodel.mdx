@@ -1,0 +1,661 @@
+---
+title: UnitConverterViewModel
+description: ViewModel for unit conversion across multiple categories including currency, volume, length, weight, temperature, energy, and more
+---
+
+## Overview
+
+The `UnitConverterViewModel` class manages unit conversions for various categories (Currency, Volume, Length, Weight, Temperature, Energy, etc.). It handles real-time currency data, supplementary results, and bidirectional conversion between units.
+
+**Namespace:** `CalculatorApp.ViewModel`
+
+**Implements:** `Windows::UI::Xaml::Data::INotifyPropertyChanged`
+
+**Declared in:** `UnitConverterViewModel.h:156`
+
+## Observable Properties
+
+### Category and Units
+
+#### Categories
+
+```cpp
+OBSERVABLE_PROPERTY_R(
+    Windows::Foundation::Collections::IObservableVector<Category^>^,
+    Categories
+);
+```
+
+Collection of available conversion categories (Currency, Volume, Length, Weight, etc.).
+
+#### CurrentCategory
+
+```cpp
+property Category^ CurrentCategory
+{
+    Category^ get();
+    void set(Category^ value);
+}
+```
+
+The currently selected conversion category. When changed, updates the `Units` collection and resets the converter.
+
+#### Units
+
+```cpp
+OBSERVABLE_PROPERTY_R(
+    Windows::Foundation::Collections::IObservableVector<Unit^>^,
+    Units
+);
+```
+
+Collection of available units for the current category.
+
+#### Mode
+
+```cpp
+OBSERVABLE_PROPERTY_RW(CalculatorApp::ViewModel::Common::ViewMode, Mode);
+```
+
+The current ViewMode (Currency, Volume, Length, etc.).
+
+### Input/Output Values
+
+#### Unit1
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Unit^, Unit1);
+```
+
+The first (source) unit for conversion.
+
+#### Value1
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, Value1);
+```
+
+The value in the first unit (user input).
+
+#### Value1Active
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, Value1Active);
+```
+
+Indicates whether the first value field is currently active for input.
+
+#### Unit2
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Unit^, Unit2);
+```
+
+The second (target) unit for conversion.
+
+#### Value2
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, Value2);
+```
+
+The value in the second unit (conversion result or user input when active).
+
+#### Value2Active
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, Value2Active);
+```
+
+Indicates whether the second value field is currently active for input.
+
+### Currency-Specific Properties
+
+#### CurrencySymbol1
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, CurrencySymbol1);
+```
+
+Currency symbol for the first unit (e.g., "$", "€").
+
+#### CurrencySymbol2
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, CurrencySymbol2);
+```
+
+Currency symbol for the second unit.
+
+#### CurrencySymbolVisibility
+
+```cpp
+property Windows::UI::Xaml::Visibility CurrencySymbolVisibility
+{
+    Windows::UI::Xaml::Visibility get();
+}
+```
+
+Controls visibility of currency symbols. Returns `Collapsed` if either symbol is empty.
+
+#### IsCurrencyCurrentCategory
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_R(bool, IsCurrencyCurrentCategory);
+```
+
+Indicates whether the current category is Currency.
+
+#### IsCurrencyLoadingVisible
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_RW(bool, IsCurrencyLoadingVisible);
+```
+
+Controls visibility of the currency data loading indicator.
+
+#### CurrencyDataLoadFailed
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_RW(bool, CurrencyDataLoadFailed);
+```
+
+Indicates whether currency data failed to load from the network.
+
+#### CurrencyDataIsWeekOld
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_RW(bool, CurrencyDataIsWeekOld);
+```
+
+Indicates whether the currency data is more than one week old.
+
+#### CurrencyRatioEquality
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, CurrencyRatioEquality);
+```
+
+Displays the exchange rate ratio (e.g., "1 USD = 0.85 EUR").
+
+#### CurrencyRatioEqualityAutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, CurrencyRatioEqualityAutomationName);
+```
+
+Accessibility-friendly version of the currency ratio.
+
+#### CurrencyTimestamp
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, CurrencyTimestamp);
+```
+
+Displays when currency rates were last updated.
+
+#### NetworkBehavior
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_RW(
+    CalculatorApp::ViewModel::Common::NetworkAccessBehavior,
+    NetworkBehavior
+);
+```
+
+Controls network access behavior for currency updates:
+- `Normal` - Fetch from network
+- `Offline` - Use cached data only
+- `OptIn` - Ask user permission
+
+### Supplementary Results
+
+#### SupplementaryResults
+
+```cpp
+OBSERVABLE_NAMED_PROPERTY_R(
+    Windows::Foundation::Collections::IObservableVector<SupplementaryResult^>^,
+    SupplementaryResults
+);
+```
+
+Collection of suggested conversions to other related units.
+
+**Example:** When converting meters to feet, might show kilometers, centimeters, inches.
+
+#### SupplementaryVisibility
+
+```cpp
+property Windows::UI::Xaml::Visibility SupplementaryVisibility
+{
+    Windows::UI::Xaml::Visibility get();
+}
+```
+
+Returns `Visible` if supplementary results are available, otherwise `Collapsed`.
+
+### UI State Properties
+
+#### IsDecimalEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsDecimalEnabled);
+```
+
+Enables/disables the decimal point button.
+
+#### IsDropDownOpen
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsDropDownOpen);
+```
+
+Indicates whether the unit selection dropdown is open.
+
+#### IsDropDownEnabled
+
+```cpp
+OBSERVABLE_PROPERTY_RW(bool, IsDropDownEnabled);
+```
+
+Enables/disables the unit selection dropdown.
+
+### Accessibility
+
+#### Value1AutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, Value1AutomationName);
+```
+
+Accessibility text for the first value field.
+
+#### Value2AutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, Value2AutomationName);
+```
+
+Accessibility text for the second value field.
+
+#### Unit1AutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, Unit1AutomationName);
+```
+
+Accessibility text for the first unit.
+
+#### Unit2AutomationName
+
+```cpp
+OBSERVABLE_PROPERTY_RW(Platform::String^, Unit2AutomationName);
+```
+
+Accessibility text for the second unit.
+
+#### Announcement
+
+```cpp
+OBSERVABLE_PROPERTY_RW(
+    CalculatorApp::ViewModel::Common::Automation::NarratorAnnouncement^,
+    Announcement
+);
+```
+
+Narrator announcements for conversion results.
+
+## Commands
+
+### CategoryChanged
+
+```cpp
+COMMAND_FOR_METHOD(CategoryChanged, UnitConverterViewModel::OnCategoryChanged);
+```
+
+Triggered when the user selects a different conversion category.
+
+### UnitChanged
+
+```cpp
+COMMAND_FOR_METHOD(UnitChanged, UnitConverterViewModel::OnUnitChanged);
+```
+
+Triggered when the user selects a different unit.
+
+### SwitchActive
+
+```cpp
+COMMAND_FOR_METHOD(SwitchActive, UnitConverterViewModel::OnSwitchActive);
+```
+
+Swaps the input and output fields.
+
+### ButtonPressed
+
+```cpp
+COMMAND_FOR_METHOD(ButtonPressed, UnitConverterViewModel::OnButtonPressed);
+```
+
+Handles number pad button presses.
+
+### CopyCommand
+
+```cpp
+COMMAND_FOR_METHOD(CopyCommand, UnitConverterViewModel::OnCopyCommand);
+```
+
+Copies the conversion result to the clipboard.
+
+### PasteCommand
+
+```cpp
+COMMAND_FOR_METHOD(PasteCommand, UnitConverterViewModel::OnPasteCommand);
+```
+
+Pastes a value from the clipboard.
+
+## Key Methods
+
+### Constructors
+
+```cpp
+UnitConverterViewModel();
+```
+
+Default constructor.
+
+```cpp
+internal: UnitConverterViewModel(
+    const std::shared_ptr<UnitConversionManager::IUnitConverter>& model
+);
+```
+
+Constructor with custom conversion model (internal use).
+
+### Public Methods
+
+#### OnPaste
+
+```cpp
+void OnPaste(Platform::String^ stringToPaste);
+```
+
+Processes pasted text as numeric input.
+
+#### RefreshCurrencyRatios
+
+```cpp
+void RefreshCurrencyRatios();
+```
+
+Manually triggers a refresh of currency exchange rates from the network.
+
+#### OnValueActivated
+
+```cpp
+void OnValueActivated(IActivatable^ control);
+```
+
+Activates the specified value field for input.
+
+#### AnnounceConversionResult
+
+```cpp
+void AnnounceConversionResult();
+```
+
+Announces the conversion result to screen readers.
+
+#### SaveUserPreferences
+
+```cpp
+void SaveUserPreferences();
+```
+
+Saves the current category and selected units to local settings for restoration on next launch.
+
+#### RestoreUserPreferences
+
+```cpp
+void RestoreUserPreferences();
+```
+
+Restores the previously saved category and units from local settings.
+
+### Internal Methods
+
+#### UpdateDisplay
+
+```cpp
+void UpdateDisplay(const std::wstring& from, const std::wstring& to);
+```
+
+Updates the display with converted values (called by the conversion engine).
+
+#### UpdateSupplementaryResults
+
+```cpp
+void UpdateSupplementaryResults(
+    const std::vector<std::tuple<std::wstring, UnitConversionManager::Unit>>& suggestedValues
+);
+```
+
+Updates the supplementary results collection.
+
+#### OnMaxDigitsReached
+
+```cpp
+void OnMaxDigitsReached();
+```
+
+Handles the maximum digit limit event.
+
+#### OnCurrencyDataLoadFinished
+
+```cpp
+void OnCurrencyDataLoadFinished(bool didLoad);
+```
+
+Callback when currency data loading completes.
+
+#### OnCurrencyTimestampUpdated
+
+```cpp
+void OnCurrencyTimestampUpdated(_In_ const std::wstring& timestamp, bool isWeekOld);
+```
+
+Callback when currency timestamp is updated.
+
+## Helper Classes
+
+### Category
+
+```cpp
+public ref class Category sealed : public Windows::UI::Xaml::Data::INotifyPropertyChanged
+{
+public:
+    property Platform::String^ Name { Platform::String^ get(); }
+    property Windows::UI::Xaml::Visibility NegateVisibility {
+        Windows::UI::Xaml::Visibility get();
+    }
+    int GetModelCategoryId();
+};
+```
+
+Represents a conversion category.
+
+### Unit
+
+```cpp
+public ref class Unit sealed : public Windows::UI::Xaml::Data::INotifyPropertyChanged
+{
+public:
+    property Platform::String^ Name { Platform::String^ get(); }
+    property Platform::String^ AccessibleName { Platform::String^ get(); }
+    property Platform::String^ Abbreviation { Platform::String^ get(); }
+    bool IsModelUnitWhimsical();
+    int ModelUnitID();
+};
+```
+
+Represents a conversion unit.
+
+### SupplementaryResult
+
+```cpp
+public ref class SupplementaryResult sealed : public Windows::UI::Xaml::Data::INotifyPropertyChanged
+{
+public:
+    OBSERVABLE_PROPERTY_R(Platform::String^, Value);
+    OBSERVABLE_PROPERTY_R(CalculatorApp::ViewModel::Unit^, Unit);
+    bool IsWhimsical();
+    Platform::String^ GetLocalizedAutomationName();
+};
+```
+
+Represents a supplementary conversion result.
+
+## INotifyPropertyChanged Implementation
+
+The ViewModel uses the `OBSERVABLE_OBJECT_CALLBACK` macro:
+
+```cpp
+OBSERVABLE_OBJECT_CALLBACK(OnPropertyChanged);
+```
+
+This generates automatic property change notifications and calls `OnPropertyChanged` for custom handling.
+
+## Usage Examples
+
+### Basic Unit Conversion
+
+```cpp
+// Create ViewModel
+auto converter = ref new UnitConverterViewModel();
+
+// Set category to Length
+converter->CurrentCategory = lengthCategory;
+
+// Set units
+converter->Unit1 = metersUnit;
+converter->Unit2 = feetUnit;
+
+// Set value to convert
+converter->Value1 = "10";
+
+// Get converted value
+Platform::String^ result = converter->Value2;
+// e.g., "32.8084"
+
+// Get supplementary results
+auto supplementary = converter->SupplementaryResults;
+// e.g., [{"10000", "Millimeters"}, {"0.01", "Kilometers"}]
+```
+
+### Currency Conversion
+
+```cpp
+// Create ViewModel
+auto converter = ref new UnitConverterViewModel();
+
+// Set to Currency mode
+converter->Mode = ViewMode::Currency;
+converter->CurrentCategory = currencyCategory;
+
+// Select currencies
+converter->Unit1 = usdUnit;
+converter->Unit2 = eurUnit;
+
+// Convert 100 USD
+converter->Value1 = "100";
+
+// Get result
+Platform::String^ euros = converter->Value2;
+Platform::String^ symbols = converter->CurrencySymbol1 + " to " + converter->CurrencySymbol2;
+Platform::String^ ratio = converter->CurrencyRatioEquality;
+// e.g., "1 USD = 0.85 EUR"
+
+// Refresh currency rates
+converter->RefreshCurrencyRatios();
+
+// Check if data is old
+if (converter->CurrencyDataIsWeekOld)
+{
+    // Show warning
+}
+```
+
+### Switching Active Fields
+
+```cpp
+// User types in Value1 by default
+converter->Value1Active = true;
+converter->Value1 = "50";
+
+// Switch to allow input in Value2
+converter->SwitchActive->Execute(nullptr);
+
+// Now Value2 is active, Value1 updates automatically
+converter->Value2 = "100";
+Platform::String^ reversedValue = converter->Value1;
+```
+
+### XAML Binding Example
+
+```xml
+<ComboBox ItemsSource="{x:Bind ViewModel.Categories}"
+          SelectedItem="{x:Bind ViewModel.CurrentCategory, Mode=TwoWay}" />
+
+<ComboBox ItemsSource="{x:Bind ViewModel.Units}"
+          SelectedItem="{x:Bind ViewModel.Unit1, Mode=TwoWay}" />
+
+<TextBox Text="{x:Bind ViewModel.Value1, Mode=TwoWay}"
+         AutomationProperties.Name="{x:Bind ViewModel.Value1AutomationName}" />
+
+<TextBlock Text="{x:Bind ViewModel.CurrencySymbol1}" />
+
+<ListView ItemsSource="{x:Bind ViewModel.SupplementaryResults}"
+          Visibility="{x:Bind ViewModel.SupplementaryVisibility}" />
+
+<Button Command="{x:Bind ViewModel.SwitchActive}" Content="⇄" />
+<Button Command="{x:Bind ViewModel.CopyCommand}" Content="Copy" />
+```
+
+## Persistence
+
+The ViewModel automatically saves and restores user preferences:
+
+```cpp
+// Save on category/unit change
+converter->SaveUserPreferences();
+
+// Restore on app launch
+converter->RestoreUserPreferences();
+```
+
+Stored preferences include:
+- Last selected category
+- Last selected units for each category
+
+## Currency Data Management
+
+Currency rates are fetched from the network and cached:
+
+1. Initial load shows loading indicator (`IsCurrencyLoadingVisible`)
+2. Data is cached locally with timestamp
+3. If data is over 1 week old, `CurrencyDataIsWeekOld` is set
+4. If network fails, `CurrencyDataLoadFailed` is set
+5. User can manually refresh with `RefreshCurrencyRatios()`
+
+## Accessibility Features
+
+- Separate automation names for all values and units
+- Live announcements for conversion results
+- Support for whimsical units (special units with unique formatting)
+- Localized number formatting respects regional settings
+
+## See Also
+
+- [ApplicationViewModel](/api/application-viewmodel) - Application-level state management
+- [IUnitConverter](https://github.com/microsoft/calculator/blob/main/src/CalcManager/UnitConverter.h) - Conversion engine interface

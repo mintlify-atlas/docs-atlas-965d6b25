@@ -1,0 +1,169 @@
+---
+title: Programmer Calculator
+description: Binary, hexadecimal, octal, and decimal calculations with bitwise operations
+---
+
+The Programmer Calculator mode is designed for developers and computer science professionals who need to work with different number bases and perform bitwise operations.
+
+## Overview
+
+Programmer mode offers common mathematical operations for developers, including conversion between common bases and bitwise operations. It evaluates expressions using standard operator precedence.
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:282-287`
+
+## Number Base Support
+
+<CardGroup cols={2}>
+  <Card title="Hexadecimal (HEX)" icon="hashtag">
+    Base-16 number system (0-9, A-F)
+  </Card>
+  <Card title="Decimal (DEC)" icon="0">
+    Base-10 number system (0-9)
+  </Card>
+  <Card title="Octal (OCT)" icon="8">
+    Base-8 number system (0-7)
+  </Card>
+  <Card title="Binary (BIN)" icon="binary">
+    Base-2 number system (0-1)
+  </Card>
+</CardGroup>
+
+Switch between bases using the HEX, DEC, OCT, and BIN buttons. The calculator automatically converts the current value when switching bases.
+
+**Source Reference:** `src/Calculator/Views/CalculatorProgrammerOperators.xaml.cs`
+
+## Bit Length Modes
+
+Programmer Calculator supports four bit length modes:
+
+- **QWORD** - 64-bit (Quadword)
+- **DWORD** - 32-bit (Doubleword)
+- **WORD** - 16-bit
+- **BYTE** - 8-bit
+
+Changing the bit length affects the range of values and truncates the result accordingly.
+
+**Source Reference:** `src/Calculator/Views/CalculatorProgrammerDisplayPanel.xaml.cs:65-97`
+
+<Info>
+  When switching to a smaller bit length, values are automatically truncated to fit within the new range.
+</Info>
+
+## Bitwise Operations
+
+### Logical Operators
+
+- **AND** - Bitwise AND operation
+- **OR** - Bitwise OR operation
+- **XOR** - Bitwise exclusive OR
+- **NOT** - Bitwise NOT (complement)
+- **NAND** - NOT AND
+- **NOR** - NOT OR
+
+### Shift Operations
+
+- **LSH** - Logical Shift Left
+- **RSH** - Logical Shift Right
+- **RoL** - Rotate Left
+- **RoR** - Rotate Right
+
+### Bit Manipulation
+
+- Individual bit toggling via the bit display panel
+- Visual representation of all bits
+- Click individual bits to flip them
+
+**Source Reference:** `src/Calculator/Views/CalculatorProgrammerBitFlipPanel.xaml.cs`
+
+## Display Panel
+
+The Programmer Calculator includes a comprehensive display panel showing:
+
+### Multi-Base Display
+
+Simultaneous display of the current value in all four number bases:
+- **HEX** - Hexadecimal representation
+- **DEC** - Decimal representation
+- **OCT** - Octal representation
+- **BIN** - Binary representation
+
+This allows you to see the value in different bases at a glance without switching modes.
+
+### Binary Visualization
+
+The bit flip panel shows:
+- Individual bit positions (numbered from 0)
+- Visual grouping (bytes separated for readability)
+- Interactive bit toggling
+- Automatic updates when value changes
+
+**Source Reference:** `src/Calculator/Views/CalculatorProgrammerDisplayPanel.xaml.cs`
+
+## Integer-Only Operations
+
+<Note>
+  Programmer mode operates exclusively with integers. Decimal operations are disabled in this mode.
+</Note>
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:285`
+
+## Memory Support
+
+Unlike Standard and Scientific modes, Programmer Calculator has a dedicated memory panel:
+
+- Memory operations available (MS, MR, M+, M-, MC)
+- Memory values stored in the current number base
+- Memory panel shows stored values with their current base representation
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:398-417`
+
+## Special Features
+
+### Full Keyboard Support
+
+- **Number keys** - Enter digits (0-9)
+- **A-F keys** - Enter hex digits (in HEX mode)
+- **Operators** - Standard operators
+- **%** - Modulo operation
+- **Shift operators** - Custom keyboard shortcuts
+
+### Error Handling
+
+The calculator provides visual feedback for:
+- Invalid operations
+- Overflow conditions
+- Division by zero
+- Invalid digits for current base (e.g., '8' in octal mode)
+
+**Source Reference:** `src/Calculator/Views/CalculatorProgrammerDisplayPanel.xaml.cs:44-56`
+
+## Window Requirements
+
+Programmer mode requires:
+- **Minimum height:** 640px
+- Ensures bit display panel remains fully visible
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:286`
+
+## History Panel
+
+<Info>
+  Programmer mode has a memory-only panel. The history pivot is removed when entering Programmer mode and restored when switching to other modes.
+</Info>
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:401-412`
+
+## Common Use Cases
+
+- **Color code conversions** - Converting RGB values between hex and decimal
+- **Network addressing** - IP address calculations and subnet masks
+- **Bit flag manipulation** - Setting and clearing individual bits
+- **Permission masks** - Unix-style permission calculations
+- **Memory address calculations** - Pointer arithmetic and offsets
+- **Data structure size** - Calculating sizes in bits and bytes
+
+## Related Features
+
+- [Standard Calculator](/features/standard-calculator) - Basic arithmetic operations
+- [Scientific Calculator](/features/scientific-calculator) - Advanced mathematical functions
+- [History & Memory](/features/history-memory) - Memory operations

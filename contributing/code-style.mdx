@@ -1,0 +1,310 @@
+---
+title: Code Style Guide
+description: Coding standards and style guidelines for Windows Calculator development
+---
+
+This guide outlines the coding standards and style guidelines for contributing to Windows Calculator.
+
+## General Principles
+
+The code in this project uses several different coding styles, depending on the age and history of the code. Please attempt to match the style of surrounding code as much as possible.
+
+<Note>
+  In new components, prefer the patterns described in the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) and the [modern C++/WinRT language projections](https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/).
+</Note>
+
+## C++ Core Guidelines
+
+For new code, follow the [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines). Key principles include:
+
+### Resource Management
+
+<Accordion title="RAII and Smart Pointers">
+  Use Resource Acquisition Is Initialization (RAII) for resource management:
+  
+  ```cpp
+  // Prefer smart pointers
+  std::unique_ptr<Widget> widget = std::make_unique<Widget>();
+  std::shared_ptr<Resource> resource = std::make_shared<Resource>();
+  
+  // Avoid raw pointers for ownership
+  // BAD: Widget* widget = new Widget();
+  ```
+  
+  This ensures resources are properly cleaned up and prevents memory leaks.
+</Accordion>
+
+### Type Safety
+
+- Use strong types instead of primitive types where appropriate
+- Prefer `constexpr` for compile-time constants
+- Use `const` for variables that don't change
+- Avoid C-style casts; use `static_cast`, `dynamic_cast`, etc.
+
+```cpp
+// Good
+constexpr int MaxDisplayDigits = 16;
+const auto result = CalculateValue();
+
+// Avoid
+#define MAX_DISPLAY_DIGITS 16
+auto result = CalculateValue(); // if result shouldn't change
+```
+
+### Modern C++ Features
+
+<Accordion title="Use Modern Language Features">
+  Leverage modern C++ features for clearer, safer code:
+  
+  ```cpp
+  // Range-based for loops
+  for (const auto& item : collection) {
+      ProcessItem(item);
+  }
+  
+  // Auto type deduction
+  auto iterator = map.find(key);
+  
+  // Lambda expressions
+  std::sort(items.begin(), items.end(), 
+      [](const auto& a, const auto& b) { return a.value < b.value; });
+  
+  // Structured bindings (C++17)
+  for (const auto& [key, value] : map) {
+      Process(key, value);
+  }
+  ```
+</Accordion>
+
+## C++/WinRT Guidelines
+
+When working with Windows Runtime APIs, follow the [C++/WinRT](https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/) best practices:
+
+### Async Operations
+
+```cpp
+// Use co_await for async operations
+IAsyncOperation<StorageFile> OpenFileAsync()
+{
+    auto picker = FileOpenPicker();
+    picker.FileTypeFilter().Append(L".txt");
+    
+    auto file = co_await picker.PickSingleFileAsync();
+    co_return file;
+}
+```
+
+### Event Handlers
+
+<Accordion title="Proper Event Handler Management">
+  ```cpp
+  // Use event tokens for proper cleanup
+  class MyPage
+  {
+  private:
+      event_token m_clickToken;
+      
+  public:
+      void Initialize()
+      {
+          m_clickToken = button.Click(
+              { this, &MyPage::OnButtonClick });
+      }
+      
+      void Cleanup()
+      {
+          button.Click(m_clickToken);
+      }
+      
+      void OnButtonClick(IInspectable const&, RoutedEventArgs const&)
+      {
+          // Handle click
+      }
+  };
+  ```
+</Accordion>
+
+### String Handling
+
+```cpp
+// Use winrt::hstring for WinRT strings
+winrt::hstring GetDisplayText()
+{
+    return L"Calculator";
+}
+
+// Convert between std::wstring and hstring
+std::wstring stdStr = L"text";
+winrt::hstring winrtStr{ stdStr };
+```
+
+## Code Organization
+
+### File Structure
+
+- Keep header files (.h) focused on declarations
+- Implement complex logic in source files (.cpp)
+- Use forward declarations when possible to reduce dependencies
+- Group related functionality into namespaces
+
+### Naming Conventions
+
+<Accordion title="Naming Standards">
+  Match the existing code style in the file you're modifying. For new code:
+  
+  ```cpp
+  // Classes and types: PascalCase
+  class CalculationManager { };
+  struct DisplayValue { };
+  
+  // Functions and methods: PascalCase
+  void CalculateResult();
+  int GetValue() const;
+  
+  // Variables: camelCase
+  int displayValue;
+  std::wstring currentInput;
+  
+  // Member variables: m_ prefix
+  class Calculator
+  {
+  private:
+      int m_currentValue;
+      std::wstring m_displayText;
+  };
+  
+  // Constants: PascalCase or UPPER_CASE
+  constexpr int MaxHistoryItems = 100;
+  const double PI = 3.14159265359;
+  ```
+</Accordion>
+
+## Code Quality
+
+### Keep Changes Small
+
+<Warning>
+  Keep code changes as small as possible. Large changes are harder to review and more likely to introduce bugs.
+</Warning>
+
+- Focus on one logical change per commit
+- Refactor separately from feature changes when possible
+- Break large features into smaller, reviewable chunks
+
+### Error Handling
+
+```cpp
+// Use exceptions for error conditions
+void ProcessValue(int value)
+{
+    if (value < 0)
+    {
+        throw std::invalid_argument("Value must be non-negative");
+    }
+    // Process value
+}
+
+// Check for errors from WinRT APIs
+try
+{
+    auto file = co_await picker.PickSingleFileAsync();
+    if (file == nullptr)
+    {
+        // User cancelled
+        co_return;
+    }
+}
+catch (winrt::hresult_error const& ex)
+{
+    // Handle error
+}
+```
+
+### Comments
+
+<Accordion title="When and How to Comment">
+  Write code that is self-documenting, but add comments when:
+  
+  - Explaining **why** something is done (not **what**)
+  - Documenting complex algorithms
+  - Noting non-obvious behavior or edge cases
+  - Referencing external requirements or bugs
+  
+  ```cpp
+  // Good: Explains why
+  // Round to avoid floating point precision errors when comparing
+  auto rounded = std::round(value * 1000.0) / 1000.0;
+  
+  // Unnecessary: States the obvious
+  // Increment counter
+  counter++;
+  ```
+</Accordion>
+
+## Testing Standards
+
+Your code should be structured for testability:
+
+### Unit Test Structure
+
+```cpp
+// Separate business logic from UI for testing
+class CalculationEngine
+{
+public:
+    double Add(double a, double b) { return a + b; }
+    double Subtract(double a, double b) { return a - b; }
+};
+
+// UI layer uses engine
+class CalculatorViewModel
+{
+private:
+    CalculationEngine m_engine;
+    
+public:
+    void OnAddButtonClick()
+    {
+        m_result = m_engine.Add(m_operand1, m_operand2);
+    }
+};
+```
+
+### Test Coverage
+
+<Note>
+  Include corresponding tests whenever possible. Code should be structured so that it can be unit tested independently of the UI.
+</Note>
+
+- Write unit tests for business logic
+- Add integration tests for component interactions
+- Use manual tests for UI-heavy scenarios
+- Test edge cases and error conditions
+
+## Performance Considerations
+
+- Avoid unnecessary allocations in hot paths
+- Use move semantics for expensive objects
+- Prefer passing by const reference for read-only parameters
+- Profile before optimizing
+
+```cpp
+// Pass large objects by const reference
+void ProcessData(const std::vector<int>& data);
+
+// Use move semantics for transferring ownership
+std::vector<int> CreateLargeVector()
+{
+    std::vector<int> result(10000);
+    // populate result
+    return result; // Automatically moved
+}
+
+auto data = CreateLargeVector(); // No copy
+```
+
+## Additional Resources
+
+- [C++ Core Guidelines](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines)
+- [C++/WinRT Documentation](https://docs.microsoft.com/en-us/windows/uwp/cpp-and-winrt-apis/)
+- [Windows UWP Development](https://docs.microsoft.com/en-us/windows/uwp/)

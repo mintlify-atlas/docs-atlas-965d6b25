@@ -1,0 +1,374 @@
+---
+title: View Layer
+description: XAML-based user interface layer including UserControls, VisualStates, and data binding
+---
+
+The View layer is contained in the **Calculator project** and consists of XAML files that define the user interface. This layer is responsible for rendering UI elements and capturing user input, while delegating all logic to the ViewModel layer through data binding.
+
+## Project Organization
+
+```
+src/Calculator/
+├── App.xaml                # Application resources and theme definitions
+├── App.xaml.cs            # Application entry point
+└── Views/
+    ├── MainPage.xaml      # Root container page
+    ├── Calculator.xaml    # Standard/Scientific/Programmer
+    ├── DateCalculator.xaml
+    └── UnitConverter.xaml
+```
+
+## Application Entry Point
+
+### App.xaml
+
+`App.xaml` contains **static and theme resources** that other XAML files reference:
+
+- StaticResource: Fixed resources loaded once
+- ThemeResource: Resources that respond to theme changes
+
+### App.xaml.cs
+
+The main entry point navigates to `MainPage` on startup:
+
+```csharp src/Calculator/App.xaml.cs
+rootFrame.Navigate(typeof(MainPage), argument)
+```
+
+## Page Structure
+
+### MainPage.xaml
+
+<Info>
+`MainPage` is the **only concrete Page class** in Calculator. It serves as the root container for all UI elements.
+</Info>
+
+Key features:
+- Uses `NavigationView` control for the mode menu
+- Contains empty containers for delay-loaded UI
+- Manages mode switching
+
+<CodeGroup>
+```xml MainPage.xaml Structure
+<Page x:Class="CalculatorApp.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+      x:Name="PageRoot"
+      muxc:BackdropMaterial.ApplyToRootOrPageBackground="True"
+      Loaded="OnPageLoaded">
+    
+    <Grid>
+        <!-- VisualStateManager for adaptive layouts -->
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="Mode">
+                <VisualState x:Name="ConverterWide">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="640"/>
+                    </VisualState.StateTriggers>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+        
+        <!-- NavigationView and content containers -->
+    </Grid>
+</Page>
+```
+</CodeGroup>
+
+## UserControls
+
+Calculator uses three main UserControls to support all modes:
+
+<CardGroup cols={3}>
+  <Card title="Calculator.xaml" icon="calculator">
+    Container for Standard, Scientific, and Programmer modes
+  </Card>
+  <Card title="DateCalculator.xaml" icon="calendar">
+    Date calculation interface
+  </Card>
+  <Card title="UnitConverter.xaml" icon="arrows-rotate">
+    All converter modes including currency
+  </Card>
+</CardGroup>
+
+### Calculator.xaml
+
+This UserControl is a **container** that hosts three operator panels:
+- **CalculatorStandardOperators.xaml** - Basic operations
+- **CalculatorScientificOperators.xaml** - Scientific functions
+- **CalculatorProgrammerOperators.xaml** - Bitwise operations
+
+<CodeGroup>
+```xml Calculator.xaml Example
+<UserControl x:Class="CalculatorApp.Calculator"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vmcommon="using:CalculatorApp.ViewModel.Common"
+             Loaded="OnLoaded">
+    
+    <UserControl.Resources>
+        <!-- Data templates for expression tokens -->
+        <DataTemplate x:Key="Operand" x:DataType="vmcommon:DisplayExpressionToken">
+            <TextBlock Margin="2,0,0,0"
+                       Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"
+                       Text="{x:Bind Token, Mode=OneWay}"/>
+        </DataTemplate>
+        
+        <DataTemplate x:Key="Operator" x:DataType="vmcommon:DisplayExpressionToken">
+            <TextBlock Margin="2,0,0,0"
+                       Foreground="{ThemeResource SystemControlPageTextBaseMediumBrush}"
+                       Text="{x:Bind Token, Mode=OneWay}"/>
+        </DataTemplate>
+    </UserControl.Resources>
+    
+    <!-- UI layout -->
+</UserControl>
+```
+</CodeGroup>
+
+## VisualStates
+
+<Warning>
+VisualStates are critical for Calculator's adaptive UI. When making UI changes, always consider all defined VisualStates.
+</Warning>
+
+**VisualStates** change the size, position, and appearance of UI elements to create responsive, adaptive layouts. Transitions are typically triggered by window size changes.
+
+### Key VisualState Examples
+
+<Tabs>
+  <Tab title="History/Memory Panel">
+    In Standard, Scientific, and Programmer modes, the History/Memory panel adapts based on window size:
+    
+    - **Small window**: Panel appears as a flyout overlay
+    - **Large window**: Panel docks along the edge
+    
+    ```xml VisualState Example
+    <VisualState x:Name="DockVisible">
+        <VisualState.StateTriggers>
+            <AdaptiveTrigger MinWindowWidth="560"/>
+        </VisualState.StateTriggers>
+        <!-- Setters to dock the panel -->
+    </VisualState>
+    ```
+  </Tab>
+  
+  <Tab title="Scientific Mode Buttons">
+    Scientific mode shows/hides function buttons based on available space:
+    
+    - **Small window**: Some buttons hidden, Shift (↑) button toggles visibility
+    - **Large window**: All buttons visible simultaneously
+    
+    This prevents UI overflow while maintaining functionality.
+  </Tab>
+  
+  <Tab title="Unit Converter Layout">
+    Unit Converter adjusts based on aspect ratio:
+    
+    - **Portrait**: Converter inputs stack vertically above numberpad
+    - **Landscape**: Inputs and numberpad arranged side-by-side
+    
+    ```xml Aspect Ratio Trigger
+    <AdaptiveTrigger MinWindowHeight="{StaticResource AppMinWindowHeight}" 
+                     MinWindowWidth="640"/>
+    ```
+  </Tab>
+</Tabs>
+
+### VisualState Implementation
+
+VisualStates are defined in XAML using `VisualStateManager`:
+
+```xml VisualStateManager
+<VisualStateManager.VisualStateGroups>
+    <VisualStateGroup x:Name="Mode">
+        <VisualState x:Name="ConverterWide">
+            <VisualState.StateTriggers>
+                <AdaptiveTrigger MinWindowHeight="{StaticResource AppMinWindowHeight}" 
+                                MinWindowWidth="640"/>
+            </VisualState.StateTriggers>
+            <VisualState.Setters>
+                <!-- Property changes for this state -->
+            </VisualState.Setters>
+        </VisualState>
+        
+        <VisualState x:Name="MinSizeLayout">
+            <VisualState.StateTriggers>
+                <AdaptiveTrigger MinWindowWidth="{StaticResource AppMinWindowWidth}"/>
+            </VisualState.StateTriggers>
+        </VisualState>
+    </VisualStateGroup>
+</VisualStateManager.VisualStateGroups>
+```
+
+<Tip>
+Always test UI changes across all VisualStates and window sizes to ensure responsive behavior.
+</Tip>
+
+## Data Binding
+
+Calculator uses **data binding** to connect XAML UI elements to ViewModel properties, enabling automatic UI updates.
+
+### x:Bind vs Binding
+
+Calculator uses two data binding syntaxes:
+
+<Tabs>
+  <Tab title="x:Bind (Preferred)">
+    **Modern**, compiled binding with better performance:
+    
+    ```xml x:Bind Example
+    <ItemsControl ItemsSource="{x:Bind Model.ExpressionTokens, Mode=OneWay}">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <ItemsStackPanel HorizontalAlignment="Right" 
+                                 Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+    </ItemsControl>
+    ```
+    
+    Benefits:
+    - Compile-time validation
+    - Better performance
+    - Supports function binding
+  </Tab>
+  
+  <Tab title="Binding (Legacy)">
+    **Older** runtime binding still present in some files:
+    
+    ```xml Binding Example
+    <TextBlock Text="{Binding DisplayValue}"/>
+    ```
+    
+    <Note>
+    When modifying existing `Binding` expressions, prefer updating to `x:Bind`.
+    </Note>
+  </Tab>
+</Tabs>
+
+### Binding Modes
+
+<CardGroup cols={3}>
+  <Card title="OneWay">
+    ViewModel → View
+    
+    Most common for display
+  </Card>
+  <Card title="TwoWay">
+    ViewModel ↔ View
+    
+    For editable fields
+  </Card>
+  <Card title="OneTime">
+    Single initial value
+    
+    For static content
+  </Card>
+</CardGroup>
+
+### Data Binding Example
+
+Here's how expression tokens are displayed:
+
+```xml Expression Token Binding (src/Calculator/Views/Calculator.xaml)
+<ScrollViewer x:Name="ExpressionContainer">
+    <ItemsControl x:Name="TokenList"
+                  ItemTemplateSelector="{StaticResource ExpressionItemTemplateSelector}"
+                  ItemsSource="{Binding ExpressionTokens}">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <ItemsStackPanel HorizontalAlignment="Right"
+                                 Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+    </ItemsControl>
+</ScrollViewer>
+```
+
+The `ExpressionTokens` property is defined in `StandardCalculatorViewModel`:
+
+```cpp src/CalcViewModel/StandardCalculatorViewModel.h
+OBSERVABLE_PROPERTY_R(
+    Windows::Foundation::Collections::IObservableVector<Common::DisplayExpressionToken ^> ^, 
+    ExpressionTokens
+);
+```
+
+<Info>
+When `ExpressionTokens` changes, the ViewModel raises a `PropertyChanged` event, and the UI automatically updates.
+</Info>
+
+## Custom Controls
+
+Calculator includes custom controls for specialized functionality:
+
+- **OverflowTextBlock** - Handles text overflow with scrolling
+- **CalculatorButton** - Customized button with calculator-specific behavior
+- **CalculationResult** - Display component for results
+
+## Command Binding
+
+User actions trigger commands defined in ViewModels:
+
+```xml Command Binding (src/Calculator/Views/MainPage.xaml)
+<Button x:Name="CopyButton"
+        Command="{x:Bind Model.CopyCommand}"/>
+        
+<Button x:Name="PasteButton"
+        Command="{x:Bind Model.PasteCommand}"/>
+```
+
+<Note>
+These buttons are hidden (for keyboard shortcuts) but their commands are bound to ViewModel methods.
+</Note>
+
+## Resource Management
+
+Resources are defined at multiple levels:
+
+<Steps>
+  <Step title="Application-Level (App.xaml)">
+    Global resources like fonts, colors, and styles used throughout the app.
+  </Step>
+  
+  <Step title="Page-Level (MainPage.xaml)">
+    Page-specific resources like data templates and converters.
+  </Step>
+  
+  <Step title="Control-Level">
+    Resources scoped to individual UserControls.
+  </Step>
+</Steps>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Prefer x:Bind over Binding">
+    Use `x:Bind` for better performance and compile-time validation. Update legacy `Binding` expressions when modifying existing code.
+  </Accordion>
+  
+  <Accordion title="Test All VisualStates">
+    UI changes should be tested across all defined VisualStates and window sizes.
+  </Accordion>
+  
+  <Accordion title="Keep Code-Behind Minimal">
+    Use code-behind only for View-specific logic like animations. Business logic belongs in ViewModels.
+  </Accordion>
+  
+  <Accordion title="Use Data Binding">
+    Avoid manual UI updates. Let data binding handle synchronization between View and ViewModel.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="ViewModel Layer" icon="circle-nodes" href="./viewmodel-layer">
+    Learn how ViewModels provide data to Views
+  </Card>
+  <Card title="MVVM Pattern" icon="diagram-project" href="./mvvm-pattern">
+    Understand the overall architecture pattern
+  </Card>
+</CardGroup>

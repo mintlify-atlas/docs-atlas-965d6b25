@@ -1,0 +1,131 @@
+---
+title: Contribution Guidelines
+description: Learn how to contribute to Windows Calculator with bug fixes, features, and improvements
+---
+
+The Calculator team encourages community feedback and contributions. There are several ways you can get involved in making Calculator better.
+
+## Before You Start
+
+<Note>
+  All community interactions must abide by the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information, see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with questions.
+</Note>
+
+## Reporting Issues and Suggesting Features
+
+If Calculator is not working properly, please file a report in the [Feedback Hub](https://insider.windows.com/en-us/fb/?contextid=130&newFeedback=True). Feedback Hub reports automatically include diagnostic data, such as the version of Calculator you're using.
+
+We are happy to hear your ideas for the future of Calculator. Check the [Feedback Hub](https://insider.windows.com/en-us/fb/?contextid=130) and see if others have submitted similar feedback. You can upvote existing feedback or submit a new suggestion.
+
+<Note>
+  We always look at upvoted items in Feedback Hub when we decide what to work on next. We read the comments in both Feedback Hub and GitHub, and we look forward to hearing your input.
+</Note>
+
+## Finding Issues to Work On
+
+Looking for something to work on? Here are some good starting points:
+
+### Good First Issues
+
+Issues marked [`good first issue`](https://github.com/Microsoft/calculator/labels/good%20first%20issue) are a good place to start if you're new to the project.
+
+### Help Wanted
+
+You can also check the [`help wanted`](https://github.com/Microsoft/calculator/labels/help%20wanted) tag to find other issues to help with.
+
+<Note>
+  If you're interested in working on a fix, leave a comment to let everyone know and to help avoid duplicated effort from others.
+</Note>
+
+## Contributions We Accept
+
+We welcome your contributions to the Calculator project, especially to fix bugs and to make improvements which address the top issues reported by Calculator users.
+
+### DO
+
+- **DO** create one pull request per Issue, and ensure that the Issue is linked in the pull request
+- **DO** follow our [Coding and Style](/contributing/code-style) guidelines, and keep code changes as small as possible
+- **DO** include corresponding tests whenever possible
+- **DO** check for additional occurrences of the same problem in other parts of the codebase before submitting your PR
+- **DO** [link the issue](https://github.com/blog/957-introducing-issue-mentions) you are addressing in the pull request
+- **DO** write a good description for your pull request. More detail is better. Describe *why* the change is being made and *why* you have chosen a particular solution. Describe any manual testing you performed to validate your change
+
+### DO NOT
+
+<Warning>
+  **DO NOT** submit a PR unless it is linked to an Issue marked [`triage approved`](https://github.com/Microsoft/calculator/issues?q=is%3Aissue+is%3Aopen+label%3A%22Triage%3A+Approved%22). This enables us to have a discussion on the idea before anyone invests time in an implementation.
+</Warning>
+
+- **DO NOT** merge multiple changes into one PR unless they have the same root cause
+- **DO NOT** submit pure formatting/typo changes to code that has not been modified otherwise
+
+## Quality Standards
+
+<Warning>
+  Submitting a pull request for an approved Issue is not a guarantee it will be approved. The change must meet our high bar for code quality, architecture, and performance, as well as other technical requirements.
+</Warning>
+
+All contributions must meet:
+
+- High code quality standards
+- Architectural consistency
+- Performance requirements
+- Technical review criteria (see [Feature Process](/contributing/feature-process))
+
+## Preparing Your Development Environment
+
+To learn how to build the code and run tests, follow the instructions in the [README](https://github.com/Microsoft/calculator/blob/main/README.md).
+
+## Testing Requirements
+
+Your change should include tests to verify new functionality wherever possible. Code should be structured so that it can be unit tested independently of the UI.
+
+<Accordion title="When to use manual tests">
+  [Manual test cases](https://github.com/Microsoft/calculator/blob/main/docs/ManualTests.md) should be used where automated testing is not feasible, such as:
+  
+  - UI interactions that are difficult to automate
+  - Visual rendering verification
+  - Cross-device compatibility testing
+  - Accessibility validation
+</Accordion>
+
+## Git Workflow
+
+Calculator uses the [GitHub flow](https://guides.github.com/introduction/flow/) where most development happens directly on the `main` branch. The `main` branch should always be in a healthy state which is ready for release.
+
+### Branch Cleanup
+
+If your change is complex, please clean up the branch history before submitting a pull request. You can use [git rebase](https://docs.microsoft.com/en-us/azure/devops/repos/git/rebase#squash-local-commits) to group your changes into a small number of commits which we can review one at a time.
+
+### Merge Strategy
+
+When completing a pull request, we will generally squash your changes into a single commit. Please let us know if your pull request needs to be merged as separate commits.
+
+## Contributor License Agreement
+
+Before we can review and accept a pull request from you, you'll need to sign a Contributor License Agreement (CLA). The CLA ensures that the community is free to use your contributions.
+
+<Accordion title="How the CLA process works">
+  You don't need to sign a CLA until you're ready to create a pull request. When your pull request is created, it is classified by a bot:
+  
+  - **Trivial changes** (e.g., typo fixes): labeled `cla-not-required`
+  - **Substantive changes**: labeled `cla-required`
+  
+  For `cla-required` PRs, the system will tell you how you can sign the CLA. Once you have signed a CLA, the current and all future pull requests will be labeled as `cla-signed`.
+  
+  More information is available on the [Microsoft CLA site](https://cla.opensource.microsoft.com/).
+</Accordion>
+
+<Note>
+  Signing the CLA is an automated process, and you only need to do it once for all Microsoft projects on GitHub.
+</Note>
+
+## Security Vulnerabilities
+
+<Warning>
+  **DO NOT** report security vulnerabilities through public GitHub issues.
+</Warning>
+
+If you believe you have found a security vulnerability, please report it to the Microsoft Security Response Center at [secure@microsoft.com](mailto:secure@microsoft.com). If possible, encrypt your message with the [Microsoft Security Response Center PGP key](https://technet.microsoft.com/en-us/security/dn606155).
+
+You should receive a response within 24 hours. For more information, visit [microsoft.com/msrc](https://www.microsoft.com/msrc).

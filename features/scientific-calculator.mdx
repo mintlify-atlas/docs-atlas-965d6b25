@@ -1,0 +1,143 @@
+---
+title: Scientific Calculator
+description: Advanced mathematical operations with order of operations support
+---
+
+The Scientific Calculator mode extends the Standard Calculator with advanced mathematical functions and operators.
+
+## Overview
+
+Scientific mode offers expanded operations and evaluates commands using proper order of operations (operator precedence). This mode is designed for students, engineers, and professionals who need advanced mathematical capabilities.
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:288-293`
+
+## Key Features
+
+<CardGroup cols={2}>
+  <Card title="Order of Operations" icon="list-ol">
+    Evaluates expressions using standard mathematical precedence rules (PEMDAS/BODMAS).
+  </Card>
+  <Card title="Trigonometric Functions" icon="wave-sine">
+    Complete set of trigonometric and inverse trigonometric functions.
+  </Card>
+  <Card title="Scientific Notation" icon="superscript">
+    Support for exponential notation and powers of 10.
+  </Card>
+  <Card title="Advanced Functions" icon="function">
+    Logarithms, exponentials, factorials, and more.
+  </Card>
+</CardGroup>
+
+## Angle Modes
+
+Scientific Calculator supports three angle measurement modes:
+
+- **Degrees** (DEG) - 360° in a full circle
+- **Radians** (RAD) - 2π in a full circle
+- **Gradians** (GRAD) - 400 gradians in a full circle
+
+Switch between modes using the angle buttons in the calculator interface.
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:461-464`
+
+## Scientific Functions
+
+### Trigonometric Functions
+
+- **sin, cos, tan** - Standard trigonometric functions
+- **sin⁻¹, cos⁻¹, tan⁻¹** - Inverse trigonometric functions
+- **sinh, cosh, tanh** - Hyperbolic functions
+- **sinh⁻¹, cosh⁻¹, tanh⁻¹** - Inverse hyperbolic functions
+
+### Exponential & Logarithmic
+
+- **eˣ** - Natural exponential
+- **10ˣ** - Base-10 exponential
+- **2ˣ** - Base-2 exponential
+- **ln** - Natural logarithm
+- **log** - Base-10 logarithm
+- **log₂** - Base-2 logarithm
+- **yˣ** - Power function
+
+### Other Functions
+
+- **n!** - Factorial
+- **x²** - Square
+- **x³** - Cube
+- **√x** - Square root
+- **∛x** - Cube root
+- **ʸ√x** - Nth root
+- **|x|** - Absolute value
+- **⌊x⌋** - Floor
+- **⌈x⌉** - Ceiling
+- **1/x** - Reciprocal
+
+## Constants
+
+- **π (pi)** - 3.14159265358979...
+- **e** - 2.71828182845904...
+
+## Memory & History
+
+Scientific mode includes:
+
+- Full memory functionality (MC, MR, M+, M-, MS)
+- Calculation history with the ability to recall previous calculations
+- History panel accessible via keyboard shortcut or button
+
+<Info>
+  History shows both the expression and result for each calculation, making it easy to track your work.
+</Info>
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:178-190`
+
+## Display Modes
+
+The Scientific Calculator adapts its layout based on window size:
+
+### Full Screen
+- All functions visible
+- Full numpad with large buttons
+- History and Memory panels can be docked to the side
+
+### Portrait/Narrow
+- Compact layout
+- Scrollable function buttons
+- Flyout panels for history and memory
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:286-293`
+
+## Keyboard Shortcuts
+
+Scientific mode supports extensive keyboard shortcuts:
+
+- **Number keys** - Enter digits
+- **Operators** (+, -, *, /)
+- **Enter/=** - Calculate result
+- **Esc** - Clear entry
+- **Ctrl+M** - Memory store
+- **Ctrl+P** - Add to memory
+- **Ctrl+Q** - Subtract from memory
+- **Ctrl+R** - Memory recall
+- **Ctrl+L** - Clear memory
+- **Ctrl+H** - History
+
+<Note>
+  The Scientific Calculator automatically enables decimal support, unlike Programmer mode.
+</Note>
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:291`
+
+## Window Size Optimization
+
+The calculator adjusts its minimum window height based on mode:
+- **Scientific mode:** 544px minimum height
+- Ensures all controls remain accessible
+
+**Source Reference:** `src/Calculator/Views/Calculator.xaml.cs:292`
+
+## Related Features
+
+- [Standard Calculator](/features/standard-calculator) - Basic arithmetic operations
+- [Programmer Calculator](/features/programmer-calculator) - Bitwise operations and number base conversions
+- [History & Memory](/features/history-memory) - Access calculation history and memory

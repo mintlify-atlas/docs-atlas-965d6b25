@@ -1,0 +1,358 @@
+---
+title: Graph Analyzer
+description: IGraphAnalyzer interface and related types for analyzing mathematical functions
+---
+
+The Graph Analyzer API provides functionality for analyzing mathematical functions to detect key features such as zeros, extrema, inflection points, asymptotes, domain, range, and other properties.
+
+<Note>
+  Developer builds use mock implementations. The real analysis engine is part of the proprietary Microsoft graphing engine used in Microsoft Mathematics and OneNote.
+</Note>
+
+## IGraphAnalyzer
+
+The `IGraphAnalyzer` interface performs mathematical analysis on graphed functions.
+
+**Namespace:** `Graphing::Analyzer`  
+**Location:** `/src/GraphingInterfaces/IGraphAnalyzer.h`
+
+### Interface Definition
+
+```cpp
+namespace Graphing::Analyzer
+{
+    using NativeAnalysisType = unsigned int; // PerformAnalysisType
+
+    struct IGraphAnalyzer : public NonCopyable, public NonMoveable
+    {
+        virtual ~IGraphAnalyzer() = default;
+        
+        virtual bool CanFunctionAnalysisBePerformed(
+            bool& variableIsNotX
+        ) = 0;
+        
+        virtual HRESULT PerformFunctionAnalysis(
+            NativeAnalysisType analysisType
+        ) = 0;
+        
+        virtual HRESULT GetAnalysisTypeCaption(
+            const AnalysisType type,
+            std::wstring& captionOut
+        ) const = 0;
+        
+        virtual HRESULT GetMessage(
+            const GraphAnalyzerMessage msg,
+            std::wstring& msgOut
+        ) const = 0;
+    };
+}
+```
+
+### Methods
+
+#### CanFunctionAnalysisBePerformed
+
+Checks if analysis can be performed on the current function.
+
+```cpp
+virtual bool CanFunctionAnalysisBePerformed(bool& variableIsNotX) = 0;
+```
+
+**Parameters:**
+- `variableIsNotX` - Output parameter indicating if the function uses a variable other than 'x'
+
+**Returns:** `true` if analysis can be performed, `false` otherwise
+
+#### PerformFunctionAnalysis
+
+Performs the specified analysis on the function.
+
+```cpp
+virtual HRESULT PerformFunctionAnalysis(NativeAnalysisType analysisType) = 0;
+```
+
+**Parameters:**
+- `analysisType` - Bitwise combination of [PerformAnalysisType](#performanalysistype) flags
+
+**Returns:** `HRESULT` indicating success or failure
+
+#### GetAnalysisTypeCaption
+
+Retrieves a localized caption for a specific analysis type.
+
+```cpp
+virtual HRESULT GetAnalysisTypeCaption(
+    const AnalysisType type,
+    std::wstring& captionOut
+) const = 0;
+```
+
+**Parameters:**
+- `type` - The [AnalysisType](#analysistype) to get a caption for
+- `captionOut` - Output parameter receiving the localized caption
+
+**Returns:** `HRESULT` indicating success or failure
+
+#### GetMessage
+
+Retrieves a localized message for a specific analyzer message code.
+
+```cpp
+virtual HRESULT GetMessage(
+    const GraphAnalyzerMessage msg,
+    std::wstring& msgOut
+) const = 0;
+```
+
+**Parameters:**
+- `msg` - The [GraphAnalyzerMessage](#graphanalyzermessage) code
+- `msgOut` - Output parameter receiving the localized message
+
+**Returns:** `HRESULT` indicating success or failure
+
+## Analysis Result Data
+
+Analysis results are returned in the `IGraphFunctionAnalysisData` structure (defined in `IMathSolver.h`):
+
+```cpp
+struct IGraphFunctionAnalysisData
+{
+    std::wstring Domain;
+    std::wstring Range;
+    int Parity;                              // FunctionParityType
+    int PeriodicityDirection;                // FunctionPeriodicityType
+    std::wstring PeriodicityExpression;
+    std::wstring Zeros;
+    std::wstring YIntercept;
+    std::vector<std::wstring> Minima;
+    std::vector<std::wstring> Maxima;
+    std::vector<std::wstring> InflectionPoints;
+    std::vector<std::wstring> VerticalAsymptotes;
+    std::vector<std::wstring> HorizontalAsymptotes;
+    std::vector<std::wstring> ObliqueAsymptotes;
+    std::map<std::wstring, int> MonotoneIntervals;  // interval -> FunctionMonotonicityType
+    int TooComplexFeatures;                  // Bitwise flag
+};
+```
+
+## Enumerations
+
+### AnalysisType
+
+Defines individual analysis types that can be requested:
+
+```cpp
+enum AnalysisType
+{
+    AnalysisType_Domain = 0,              // Function domain
+    AnalysisType_Range = 1,               // Function range
+    AnalysisType_Parity = 2,              // Even/odd/neither
+    AnalysisType_Zeros = 3,               // x-intercepts
+    AnalysisType_YIntercept = 4,          // y-intercept
+    AnalysisType_Minima = 5,              // Local minima
+    AnalysisType_Maxima = 6,              // Local maxima
+    AnalysisType_InflectionPoints = 7,    // Inflection points
+    AnalysisType_VerticalAsymptotes = 8,  // Vertical asymptotes
+    AnalysisType_HorizontalAsymptotes = 9,// Horizontal asymptotes
+    AnalysisType_ObliqueAsymptotes = 10,  // Oblique asymptotes
+    AnalysisType_Monotonicity = 11,       // Increasing/decreasing intervals
+    AnalysisType_Period = 12              // Periodic behavior
+};
+```
+
+### PerformAnalysisType
+
+Bitwise flags for specifying multiple analysis operations:
+
+```cpp
+enum class PerformAnalysisType
+{
+    PerformAnalysisType_Domain = 0x01,
+    PerformAnalysisType_Range = 0x02,
+    PerformAnalysisType_Parity = 0x04,
+    PerformAnalysisType_InterceptionPointsWithXAndYAxis = 0x08,  // Zeros and y-intercept
+    PerformAnalysisType_CriticalPoints = 0x10,                   // Extrema and inflection points
+    PerformAnalysisType_Asymptotes = 0x20,                       // All asymptote types
+    PerformAnalysisType_Monotonicity = 0x40,
+    PerformAnalysisType_Period = 0x80,
+    PerformAnalysisType_All = 0xFF                               // All analysis types
+};
+```
+
+**Example Usage:**
+
+```cpp
+// Analyze domain, range, and critical points
+NativeAnalysisType analysisType = 
+    PerformAnalysisType_Domain | 
+    PerformAnalysisType_Range | 
+    PerformAnalysisType_CriticalPoints;
+
+HRESULT hr = analyzer->PerformFunctionAnalysis(analysisType);
+```
+
+### GraphAnalyzerMessage
+
+Predefined message codes for common analysis results:
+
+```cpp
+enum GraphAnalyzerMessage
+{
+    GraphAnalyzerMessage_None = 0,
+    GraphAnalyzerMessage_NoZeros = 1,
+    GraphAnalyzerMessage_NoYIntercept = 2,
+    GraphAnalyzerMessage_NoMinima = 3,
+    GraphAnalyzerMessage_NoMaxima = 4,
+    GraphAnalyzerMessage_NoInflectionPoints = 5,
+    GraphAnalyzerMessage_NoVerticalAsymptotes = 6,
+    GraphAnalyzerMessage_NoHorizontalAsymptotes = 7,
+    GraphAnalyzerMessage_NoObliqueAsymptotes = 8,
+    GraphAnalyzerMessage_NotAbleToCalculate = 9,
+    GraphAnalyzerMessage_NotAbleToMarkAllGraphFeatures = 10,
+    GraphAnalyzerMessage_TheseFeaturesAreTooComplexToCalculate = 11,
+    GraphAnalyzerMessage_ThisFeatureIsTooComplexToCalculate = 12
+};
+```
+
+These messages provide user-friendly feedback when certain features are not found or cannot be calculated.
+
+### FunctionParityType
+
+Describes the parity (symmetry) of a function:
+
+```cpp
+enum class FunctionParityType
+{
+    FunctionParityType_Unknown = 0,  // Not calculated or cannot be determined
+    FunctionParityType_Odd = 1,      // f(-x) = -f(x) - symmetric about origin
+    FunctionParityType_Even = 2,     // f(-x) = f(x) - symmetric about y-axis
+    FunctionParityType_None = 3      // Neither odd nor even
+};
+```
+
+### FunctionMonotonicityType
+
+Describes the monotonic behavior of a function over an interval:
+
+```cpp
+enum class FunctionMonotonicityType
+{
+    FunctionMonotonicityType_Unknown = 0,     // Not calculated
+    FunctionMonotonicityType_Ascending = 1,   // Function is increasing
+    FunctionMonotonicityType_Descending = 2,  // Function is decreasing
+    FunctionMonotonicityType_Constant = 3     // Function is constant
+};
+```
+
+### FunctionPeriodicityType
+
+Describes whether a function is periodic:
+
+```cpp
+enum class FunctionPeriodicityType
+{
+    FunctionPeriodicityType_Unknown = 0,      // Not calculated or cannot be determined
+    FunctionPeriodicityType_Periodic = 1,     // Function repeats with a period
+    FunctionPeriodicityType_NotPeriodic = 2   // Function does not repeat
+};
+```
+
+### AsymptoteType
+
+Describes the behavior of asymptotes at infinity:
+
+```cpp
+enum class AsymptoteType
+{
+    AsymptoteType_Unknown = 0,            // Not calculated
+    AsymptoteType_PositiveInfinity = 1,   // As x → +∞
+    AsymptoteType_NegativeInfinity = 2,   // As x → -∞
+    AsymptoteType_AnyInfinity = 3         // As x → ±∞
+};
+```
+
+## Usage Example
+
+```cpp
+// Create math solver and analyzer
+auto solver = IMathSolver::CreateMathSolver();
+int errorCode, errorType;
+auto expr = solver->ParseInput(L"x^2 - 4", errorCode, errorType);
+auto graph = solver->CreateGrapher(expr.get());
+
+// Get analyzer from graph
+auto analyzer = graph->GetAnalyzer();
+
+// Check if analysis can be performed
+bool variableIsNotX;
+if (analyzer->CanFunctionAnalysisBePerformed(variableIsNotX))
+{
+    // Perform comprehensive analysis
+    NativeAnalysisType analysisType = PerformAnalysisType_All;
+    HRESULT hr = analyzer->PerformFunctionAnalysis(analysisType);
+    
+    if (SUCCEEDED(hr))
+    {
+        // Get analysis results
+        auto analysisData = solver->Analyze(analyzer.get());
+        
+        // Access results
+        std::wcout << L"Zeros: " << analysisData.Zeros << std::endl;
+        std::wcout << L"Domain: " << analysisData.Domain << std::endl;
+        
+        for (const auto& min : analysisData.Minima)
+        {
+            std::wcout << L"Minimum at: " << min << std::endl;
+        }
+    }
+}
+
+// Get localized message
+std::wstring message;
+analyzer->GetMessage(GraphAnalyzerMessage_NoZeros, message);
+std::wcout << message << std::endl;  // "No zeros"
+```
+
+## Controlling Visualization
+
+The analysis results can be used to mark features on the graph. Use [IGraphingOptions](/api/graphing-interfaces#igraphingoptions) to control which features are visually marked:
+
+```cpp
+auto options = graph->GetGraphingOptions();
+
+// Enable marking of key features
+options->SetMarkZeros(true);
+options->SetMarkMinima(true);
+options->SetMarkMaxima(true);
+options->SetMarkInflectionPoints(true);
+options->SetMarkVerticalAsymptotes(true);
+
+// Customize feature colors
+Graphing::Color redColor = {255, 0, 0, 255};
+options->SetZerosColor(redColor);
+```
+
+## Performance Considerations
+
+Analysis operations can be computationally intensive for complex functions. Use the execution time limit in `IGraphingOptions`:
+
+```cpp
+// Set maximum execution time to 5 seconds (5000ms)
+options->SetMaxExecutionTime(5000);
+
+// Control analysis for functions with parameters
+options->SetAllowKeyGraphFeaturesForFunctionsWithParameters(false);
+```
+
+## Related APIs
+
+- [Graphing Interfaces](/api/graphing-interfaces) - Main graphing API overview
+- `IGraphingOptions` - Configure visualization of analysis results
+- `IMathSolver` - Expression parsing and graph creation
+
+## Source Files
+
+- `/src/GraphingInterfaces/IGraphAnalyzer.h` - Analyzer interface definition
+- `/src/GraphingInterfaces/GraphingEnums.h` - Enumeration definitions
+- `/src/GraphingInterfaces/IMathSolver.h` - Analysis data structure
+- `/src/GraphingImpl/Mocks` - Mock implementation for developer builds

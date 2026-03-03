@@ -1,0 +1,499 @@
+---
+title: "UnitConverter"
+description: "Core class for unit conversion operations with support for standard units and currency conversion"
+---
+
+## Overview
+
+The `UnitConverter` class is the main implementation of unit conversion functionality in Windows Calculator. It manages conversion categories, units, conversion ratios, and user input handling. The class supports both standard unit conversions (length, weight, temperature, etc.) and currency conversions through specialized data loaders.
+
+## Class Definition
+
+```cpp
+namespace UnitConversionManager {
+    class UnitConverter : public IUnitConverter, 
+                         public std::enable_shared_from_this<UnitConverter>
+}
+```
+
+**Header:** `~/workspace/source/src/CalcManager/UnitConverter.h`
+
+## Constructors
+
+### UnitConverter(dataLoader)
+
+Constructs a `UnitConverter` with a single data loader for standard unit conversions.
+
+```cpp
+UnitConverter(_In_ const std::shared_ptr<IConverterDataLoader>& dataLoader);
+```
+
+<ParamField path="dataLoader" type="std::shared_ptr<IConverterDataLoader>">
+  Data loader instance for reading category/unit names and conversion data
+</ParamField>
+
+### UnitConverter(dataLoader, currencyDataLoader)
+
+Constructs a `UnitConverter` with separate data loaders for standard units and currencies.
+
+```cpp
+UnitConverter(
+    _In_ const std::shared_ptr<IConverterDataLoader>& dataLoader,
+    _In_ const std::shared_ptr<IConverterDataLoader>& currencyDataLoader
+);
+```
+
+<ParamField path="dataLoader" type="std::shared_ptr<IConverterDataLoader>">
+  Data loader for standard unit conversion data
+</ParamField>
+
+<ParamField path="currencyDataLoader" type="std::shared_ptr<IConverterDataLoader>">
+  Specialized data loader for currency conversion data (can be `nullptr`)
+</ParamField>
+
+## Core Methods
+
+### Initialize
+
+Initializes the converter by loading data from the configured data loaders.
+
+```cpp
+void Initialize();
+```
+
+See `UnitConverter.cpp:72`
+
+### GetCategories
+
+Returns the list of available conversion categories.
+
+```cpp
+std::vector<Category> GetCategories();
+```
+
+**Returns:** Vector of `Category` structs representing all available conversion categories (e.g., Length, Weight, Temperature, Currency)
+
+See `UnitConverter.cpp:89`
+
+### SetCurrentCategory
+
+Sets the active conversion category and returns initialization data for the category.
+
+```cpp
+CategorySelectionInitializer SetCurrentCategory(const Category& input);
+```
+
+<ParamField path="input" type="const Category&">
+  The category to set as current
+</ParamField>
+
+**Returns:** `CategorySelectionInitializer` (tuple containing: vector of units, from unit, to unit)
+
+See `UnitConverter.cpp:100`
+
+### GetCurrentCategory
+
+Retrieves the currently active conversion category.
+
+```cpp
+Category GetCurrentCategory();
+```
+
+**Returns:** The current `Category` struct
+
+See `UnitConverter.cpp:134`
+
+### SetCurrentUnitTypes
+
+Sets the source and target units for conversion and triggers a calculation.
+
+```cpp
+void SetCurrentUnitTypes(const Unit& fromType, const Unit& toType);
+```
+
+<ParamField path="fromType" type="const Unit&">
+  The unit being converted from (source unit)
+</ParamField>
+
+<ParamField path="toType" type="const Unit&">
+  The unit being converted to (target unit)
+</ParamField>
+
+See `UnitConverter.cpp:145`
+
+### Calculate
+
+Performs the conversion calculation based on current input value and selected units.
+
+```cpp
+void Calculate();
+```
+
+This method converts the current display value from the source unit to the target unit, handles precision and formatting, and updates the view model with the result.
+
+See `UnitConverter.cpp:867`
+
+### SwitchActive
+
+Swaps the source and target units, switching which field the user is editing.
+
+```cpp
+void SwitchActive(const std::wstring& newValue);
+```
+
+<ParamField path="newValue" type="const std::wstring&">
+  The value from the newly activated field (handles cases where the UI may have trimmed digits)
+</ParamField>
+
+See `UnitConverter.cpp:176`
+
+### IsSwitchedActive
+
+Checks whether the user has switched to editing the target field.
+
+```cpp
+bool IsSwitchedActive() const;
+```
+
+**Returns:** `true` if the user is editing the target field, `false` otherwise
+
+See `UnitConverter.cpp:199`
+
+### SendCommand
+
+Processes input commands from the user interface (number keys, decimal, backspace, etc.).
+
+```cpp
+void SendCommand(Command command);
+```
+
+<ParamField path="command" type="Command">
+  The command enum representing the user action (e.g., Zero, One, Decimal, Backspace, Negate, Clear)
+</ParamField>
+
+See `UnitConverter.cpp:393`
+
+### RefreshCurrencyRatios
+
+Asynchronously refreshes currency conversion rates from the web.
+
+```cpp
+std::future<std::pair<bool, std::wstring>> RefreshCurrencyRatios();
+```
+
+**Returns:** Future containing a pair of (success flag, timestamp string)
+
+See `UnitConverter.cpp:558`
+
+## Persistence Methods
+
+### SaveUserPreferences
+
+Serializes the current converter state to a string for persistence.
+
+```cpp
+std::wstring SaveUserPreferences();
+```
+
+**Returns:** Serialized string containing the current category, from unit, and to unit
+
+See `UnitConverter.cpp:314`
+
+### RestoreUserPreferences
+
+Deserializes and restores the converter state from a saved string.
+
+```cpp
+void RestoreUserPreferences(std::wstring_view userPreferences);
+```
+
+<ParamField path="userPreferences" type="std::wstring_view">
+  Serialized state string from a previous `SaveUserPreferences()` call
+</ParamField>
+
+See `UnitConverter.cpp:278`
+
+## Callback Methods
+
+### SetViewModelCallback
+
+Registers a callback interface for display updates.
+
+```cpp
+void SetViewModelCallback(
+    _In_ const std::shared_ptr<IUnitConverterVMCallback>& newCallback
+);
+```
+
+<ParamField path="newCallback" type="std::shared_ptr<IUnitConverterVMCallback>">
+  Callback interface that receives conversion results and suggested values
+</ParamField>
+
+See `UnitConverter.cpp:538`
+
+### SetViewModelCurrencyCallback
+
+Registers a callback interface for currency-specific updates.
+
+```cpp
+void SetViewModelCurrencyCallback(
+    _In_ const std::shared_ptr<IViewModelCurrencyCallback>& newCallback
+);
+```
+
+<ParamField path="newCallback" type="std::shared_ptr<IViewModelCurrencyCallback>">
+  Callback interface for currency symbols, ratios, timestamps, and network status
+</ParamField>
+
+See `UnitConverter.cpp:547`
+
+## Utility Methods
+
+### StringToVector
+
+Parses a delimited string into a vector of strings.
+
+```cpp
+static std::vector<std::wstring> StringToVector(
+    std::wstring_view w,
+    std::wstring_view delimiter,
+    bool addRemainder = false
+);
+```
+
+<ParamField path="w" type="std::wstring_view">
+  The string to parse
+</ParamField>
+
+<ParamField path="delimiter" type="std::wstring_view">
+  The delimiter to split on
+</ParamField>
+
+<ParamField path="addRemainder" type="bool" default="false">
+  Whether to include any remaining text after the last delimiter
+</ParamField>
+
+**Returns:** Vector of parsed string tokens
+
+See `UnitConverter.cpp:214`
+
+### Quote
+
+Escapes special delimiter characters in a string for serialization.
+
+```cpp
+static std::wstring Quote(std::wstring_view s);
+```
+
+<ParamField path="s" type="std::wstring_view">
+  The string to escape
+</ParamField>
+
+**Returns:** Escaped string with delimiter characters converted to escape sequences
+
+See `UnitConverter.cpp:330`
+
+### Unquote
+
+Unescapes a serialized string, restoring original delimiter characters.
+
+```cpp
+static std::wstring Unquote(std::wstring_view s);
+```
+
+<ParamField path="s" type="std::wstring_view">
+  The escaped string to restore
+</ParamField>
+
+**Returns:** Original string with escape sequences converted back to delimiter characters
+
+See `UnitConverter.cpp:354`
+
+### ResetCategoriesAndRatios
+
+Reloads all categories and conversion ratios from the data loaders.
+
+```cpp
+void ResetCategoriesAndRatios();
+```
+
+See `UnitConverter.cpp:724`
+
+## Data Structures
+
+### Unit Struct
+
+Represents a single unit of measurement within a category.
+
+```cpp
+struct Unit {
+    int id;
+    std::wstring name;
+    std::wstring accessibleName;
+    std::wstring abbreviation;
+    bool isConversionSource;
+    bool isConversionTarget;
+    bool isWhimsical;
+};
+```
+
+<ParamField path="id" type="int">
+  Unique identifier for the unit
+</ParamField>
+
+<ParamField path="name" type="std::wstring">
+  Display name of the unit (e.g., "Meters", "Pounds")
+</ParamField>
+
+<ParamField path="accessibleName" type="std::wstring">
+  Accessibility-friendly name for screen readers
+</ParamField>
+
+<ParamField path="abbreviation" type="std::wstring">
+  Short abbreviation (e.g., "m", "lb")
+</ParamField>
+
+<ParamField path="isConversionSource" type="bool">
+  Whether this unit is set as the source (from) unit
+</ParamField>
+
+<ParamField path="isConversionTarget" type="bool">
+  Whether this unit is set as the target (to) unit
+</ParamField>
+
+<ParamField path="isWhimsical" type="bool">
+  Whether this is a whimsical/novelty unit (e.g., "Football fields")
+</ParamField>
+
+See `UnitConverter.h:16`
+
+#### EMPTY_UNIT
+
+A sentinel value representing an uninitialized or invalid unit.
+
+```cpp
+inline const Unit EMPTY_UNIT = Unit{ -1, L"", L"", true, true, false };
+```
+
+See `UnitConverter.h:80`
+
+### Category Struct
+
+Represents a conversion category (e.g., Length, Weight, Currency).
+
+```cpp
+struct Category {
+    int id;
+    std::wstring name;
+    bool supportsNegative;
+};
+```
+
+<ParamField path="id" type="int">
+  Unique identifier for the category
+</ParamField>
+
+<ParamField path="name" type="std::wstring">
+  Display name of the category (e.g., "Length", "Currency")
+</ParamField>
+
+<ParamField path="supportsNegative" type="bool">
+  Whether negative values are allowed in this category
+</ParamField>
+
+See `UnitConverter.h:82`
+
+### ConversionData Struct
+
+Defines the conversion formula between two units.
+
+```cpp
+struct ConversionData {
+    double ratio;
+    double offset;
+    bool offsetFirst;
+};
+```
+
+<ParamField path="ratio" type="double">
+  Multiplication factor for the conversion
+</ParamField>
+
+<ParamField path="offset" type="double">
+  Additive offset for the conversion (used for temperature, etc.)
+</ParamField>
+
+<ParamField path="offsetFirst" type="bool">
+  If `true`, apply offset before ratio: `(value + offset) * ratio`  
+  If `false`, apply ratio before offset: `(value * ratio) + offset`
+</ParamField>
+
+See `UnitConverter.h:126`
+
+## Constants
+
+- `MAXIMUMDIGITSALLOWED = 15` - Maximum significant digits allowed in input
+- `OPTIMALDIGITSALLOWED = 7` - Optimal number of significant digits for display
+- `OPTIMALDECIMALALLOWED = 1e-6` - Threshold for optimal decimal precision
+- `MINIMUMDECIMALALLOWED = 1e-14` - Minimum decimal value before switching to scientific notation
+
+See `UnitConverter.cpp:21`
+
+## Type Aliases
+
+```cpp
+using CategorySelectionInitializer = std::tuple<
+    std::vector<Unit>,  // Available units
+    Unit,               // From unit
+    Unit                // To unit
+>;
+
+using UnitToUnitToConversionDataMap = std::unordered_map<
+    Unit,
+    std::unordered_map<Unit, ConversionData, UnitHash>,
+    UnitHash
+>;
+
+using CategoryToUnitVectorMap = std::unordered_map<int, std::vector<Unit>>;
+```
+
+See `UnitConverter.h:159`
+
+## Usage Example
+
+```cpp
+// Create data loaders
+auto dataLoader = std::make_shared<ConverterDataLoader>();
+auto currencyLoader = std::make_shared<CurrencyDataLoader>();
+
+// Create converter with both loaders
+auto converter = std::make_shared<UnitConverter>(dataLoader, currencyLoader);
+converter->Initialize();
+
+// Set up callbacks
+auto vmCallback = std::make_shared<MyViewModelCallback>();
+converter->SetViewModelCallback(vmCallback);
+
+// Get available categories
+auto categories = converter->GetCategories();
+
+// Select a category
+auto [units, fromUnit, toUnit] = converter->SetCurrentCategory(categories[0]);
+
+// Set conversion units
+converter->SetCurrentUnitTypes(units[0], units[1]);
+
+// Send input commands
+converter->SendCommand(Command::Five);
+converter->SendCommand(Command::Decimal);
+converter->SendCommand(Command::Two);
+
+// Calculate and get results via callback
+converter->Calculate();
+```
+
+## Related
+
+- [Currency Converter](/api/currency-converter) - Currency-specific conversion details
+- [IConverterDataLoader Interface](UnitConverter.h:177) - Data loader interface for categories and units
+- [ICurrencyConverterDataLoader Interface](UnitConverter.h:188) - Currency-specific data loader interface
