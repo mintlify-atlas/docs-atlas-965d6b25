@@ -1,0 +1,129 @@
+{
+  "projectType": "general",
+  "projectName": "Windows Calculator",
+  "projectDescription": "A modern Windows calculator app written in C++ and C# that ships pre-installed with Windows, providing standard, scientific, and programmer calculator functionality, as well as unit and currency converters.",
+  "theme": "aspen",
+  "primaryColor": "#0078D4",
+  "lightColor": "#50E6FF",
+  "darkColor": "#005A9E",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/standard-calculator",
+              "features/scientific-calculator",
+              "features/programmer-calculator",
+              "features/date-calculator",
+              "features/unit-converter",
+              "features/currency-converter",
+              "features/graphing-mode",
+              "features/history-memory"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/mvvm-pattern",
+              "architecture/view-layer",
+              "architecture/viewmodel-layer",
+              "architecture/model-layer"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/building",
+              "development/testing",
+              "development/debugging"
+            ]
+          },
+          {
+            "group": "Contributing",
+            "pages": [
+              "contributing/guidelines",
+              "contributing/code-style",
+              "contributing/pull-requests",
+              "contributing/feature-process"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Core Components",
+            "pages": [
+              "api/calculator-manager",
+              "api/calc-engine",
+              "api/ratpack"
+            ]
+          },
+          {
+            "group": "ViewModels",
+            "pages": [
+              "api/application-viewmodel",
+              "api/standard-calculator-viewmodel",
+              "api/date-calculator-viewmodel",
+              "api/unit-converter-viewmodel"
+            ]
+          },
+          {
+            "group": "Unit Conversion",
+            "pages": [
+              "api/unit-converter",
+              "api/currency-converter"
+            ]
+          },
+          {
+            "group": "Graphing",
+            "pages": [
+              "api/graphing-interfaces",
+              "api/graph-analyzer"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Standard, Scientific, and Programmer calculator modes",
+    "Date calculation with date difference and add/subtract operations",
+    "Unit converter supporting multiple measurement categories",
+    "Currency conversion with real-time exchange rates from Bing",
+    "Infinite precision arithmetic for basic operations",
+    "Calculation history and memory capabilities",
+    "Graphing calculator functionality (UI available, engine mock in dev builds)",
+    "XAML-based UWP application with MVVM architecture"
+  ],
+  "publicApiSurface": [
+    "CalculationManager::CalculatorManager",
+    "CalculationManager::CCalcEngine",
+    "CalculationManager::Command",
+    "CalculationManager::MemoryCommand",
+    "UnitConversionManager::UnitConverter",
+    "UnitConversionManager::Category",
+    "UnitConversionManager::Unit",
+    "CalculatorApp::ApplicationViewModel",
+    "CalculatorApp::StandardCalculatorViewModel",
+    "CalculatorApp::DateCalculatorViewModel",
+    "CalculatorApp::UnitConverterViewModel",
+    "CalcEngine::Rational (Ratpack)",
+    "Graphing::IGraphingOptions",
+    "Graphing::IGraphAnalyzer",
+    "Graphing::IMathSolver"
+  ]
+}
